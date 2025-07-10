@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1075126726259",
+    "project_id": "quick-b108e",
+    "storage_bucket": "quick-b108e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1075126726259:android:edf0afe80c2eec3cc68406",
+        "android_client_info": {
+          "package_name": "com.nagazakisoftware.quick"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA0Kb5ofJ3kxe0Vog2zRCVK94kWkPsTVrQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
