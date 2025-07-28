@@ -174,6 +174,8 @@ class _NavBarPageState extends State<NavBarPage> {
       'dashboardQuickyTasks': DashboardQuickyTasksWidget(),
       'appAnalystics': AppAnalysticsWidget(),
       'alluserapage': AlluserapageWidget(),
+      'dashboardQuickyTasksCopy': DashboardQuickyTasksCopyWidget(),
+      'dashboardQuickyTasksCopyCopy': DashboardQuickyTasksCopyCopyWidget(),
     };
     final currentIndex = tabs.keys.toList().indexOf(_currentPageName);
 
@@ -252,6 +254,34 @@ class _NavBarPageState extends State<NavBarPage> {
               ),
               label: FFLocalizations.of(context).getText(
                 'rwu243fy' /* __ */,
+              ),
+              tooltip: '',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(
+                Icons.task_alt,
+                size: 24.0,
+              ),
+              activeIcon: Icon(
+                Icons.add_task_rounded,
+                size: 32.0,
+              ),
+              label: FFLocalizations.of(context).getText(
+                'xa3oh10i' /* __ */,
+              ),
+              tooltip: '',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(
+                Icons.task_alt,
+                size: 24.0,
+              ),
+              activeIcon: Icon(
+                Icons.add_task_rounded,
+                size: 32.0,
+              ),
+              label: FFLocalizations.of(context).getText(
+                'j7hhuxt3' /* __ */,
               ),
               tooltip: '',
             )

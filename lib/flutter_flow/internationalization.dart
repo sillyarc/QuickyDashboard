@@ -384,23 +384,38 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'id': 'Di bawah ini adalah ringkasan kegiatan.',
       'ms': 'Di bawah ialah ringkasan aktiviti.',
     },
-    'uj7jsxmo': {
-      'en': 'Contract Activity',
+    'gxxpy5m1': {
+      'en': 'Status',
+      'id': '',
+      'ms': '',
+    },
+    '9j0vrfh9': {
+      'en': 'Quicky Tasks',
       'id': 'Aktivitas Kontrak',
       'ms': 'Aktiviti Kontrak',
     },
-    'hkk2zmjw': {
-      'en': 'Below is an a summary of activity.',
+    'kem72pud': {
+      'en': 'All information about the \nQuicky Tasks app.',
       'id': 'Di bawah ini adalah ringkasan kegiatan.',
       'ms': 'Di bawah ialah ringkasan aktiviti.',
     },
-    'jkgae0vc': {
-      'en': 'Customer Activity',
-      'id': 'Aktivitas Pelanggan',
-      'ms': 'Aktiviti Pelanggan',
+    'tzuvmho2': {
+      'en': 'Status',
+      'id': '',
+      'ms': '',
     },
-    'g4os7kcp': {
-      'en': 'Below is an a summary of activity.',
+    'hak6pwb5': {
+      'en': 'Off',
+      'id': '',
+      'ms': '',
+    },
+    '9ezid24o': {
+      'en': 'Quicky Essencials',
+      'id': 'Aktivitas Kontrak',
+      'ms': 'Aktiviti Kontrak',
+    },
+    'abdglv13': {
+      'en': 'All information about the \nQuicky Essencials app.',
       'id': 'Di bawah ini adalah ringkasan kegiatan.',
       'ms': 'Di bawah ialah ringkasan aktiviti.',
     },
@@ -731,6 +746,21 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'id': '',
       'ms': '',
     },
+    'tqd8dgyc': {
+      'en': 'Quicky Tasks Dashboard',
+      'id': 'Kontrak',
+      'ms': 'Kontrak',
+    },
+    '278eck7u': {
+      'en': 'Test Quicky Tasks',
+      'id': '',
+      'ms': '',
+    },
+    'b0am1gak': {
+      'en': 'Status',
+      'id': '',
+      'ms': '',
+    },
     'le4nopeu': {
       'en': 'Quicky Actions',
       'id': 'Proyek',
@@ -747,11 +777,21 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'ms': 'Dokumen Pasukan Reka Bentuk',
     },
     'benywaxl': {
-      'en': 'Quikcy Calendar',
+      'en': 'Quicky Calendar',
+      'id': 'Dokumen Tim Desain',
+      'ms': 'Dokumen Pasukan Reka Bentuk',
+    },
+    'emutpkke': {
+      'en': 'Payments',
       'id': 'Dokumen Tim Desain',
       'ms': 'Dokumen Pasukan Reka Bentuk',
     },
     '143i8tde': {
+      'en': 'New Notifications',
+      'id': 'Dokumen Tim Desain',
+      'ms': 'Dokumen Pasukan Reka Bentuk',
+    },
+    'cuzp0icr': {
       'en': 'Tasks Ready',
       'id': 'Dokumen Tim Desain',
       'ms': 'Dokumen Pasukan Reka Bentuk',
@@ -1292,6 +1332,11 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'id': 'Pelanggan',
       'ms': 'Pelanggan',
     },
+    '6ndv1fcq': {
+      'en': 'All Users',
+      'id': '',
+      'ms': '',
+    },
     'zi9l9ivi': {
       'en': 'Head of Procurement',
       'id': 'Kepala Pengadaan',
@@ -1400,6 +1445,11 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
   },
   // taskspreprontas
   {
+    '6qnfjgem': {
+      'en': 'Customers',
+      'id': 'Pelanggan',
+      'ms': 'Pelanggan',
+    },
     'q49tqfef': {
       'en': 'Tasks Ready',
       'id': 'Pelanggan',
@@ -1407,11 +1457,6 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     'd9bjktza': {
       'en': 'Edit, create or delete pre-made tasks.',
-      'id': 'Pelanggan',
-      'ms': 'Pelanggan',
-    },
-    '6qnfjgem': {
-      'en': 'Customers',
       'id': 'Pelanggan',
       'ms': 'Pelanggan',
     },
@@ -1460,6 +1505,197 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
       'en': 'Home',
       'id': 'Rumah',
       'ms': 'Rumah',
+    },
+  },
+  // dashboardQuickyTasksCopy
+  {
+    'lp8581z0': {
+      'en': 'Quicky Tasks Dashboard',
+      'id': 'Kontrak',
+      'ms': 'Kontrak',
+    },
+    'rvloca08': {
+      'en': 'Test Quicky Tasks',
+      'id': '',
+      'ms': '',
+    },
+    'im7c8y6a': {
+      'en': 'Status',
+      'id': '',
+      'ms': '',
+    },
+    'p4ydr18k': {
+      'en': 'Public Events',
+      'id': 'Kontrak',
+      'ms': 'Kontrak',
+    },
+    's8w09h8v': {
+      'en': 'Test Quicky Tasks',
+      'id': '',
+      'ms': '',
+    },
+    'y683ib3c': {
+      'en': 'Status',
+      'id': '',
+      'ms': '',
+    },
+    'g1kn0bpa': {
+      'en': 'Events Actions',
+      'id': 'Proyek',
+      'ms': 'Projek',
+    },
+    '5hjininm': {
+      'en': 'Create Event',
+      'id': 'Desain Platform Tanpa Kode',
+      'ms': 'Reka Bentuk Platform Tanpa Kod',
+    },
+    'raexffck': {
+      'en': 'App Analytics',
+      'id': 'Dokumen Tim Desain',
+      'ms': 'Dokumen Pasukan Reka Bentuk',
+    },
+    'ynqn579v': {
+      'en': 'Events',
+      'id': 'Kontrak',
+      'ms': 'Kontrak',
+    },
+    'ucdz4u3g': {
+      'en': 'ACME Co.',
+      'id': 'ACME Co.',
+      'ms': 'ACME Co.',
+    },
+    '78q06459': {
+      'en': 'Contracts for New Opportunities',
+      'id': 'Kontrak untuk Peluang Baru',
+      'ms': 'Kontrak untuk Peluang Baru',
+    },
+    'u30x2kpm': {
+      'en': 'Next Action',
+      'id': 'Tindakan Selanjutnya',
+      'ms': 'Tindakan Seterusnya',
+    },
+    'p5pdndp9': {
+      'en': 'Tuesday, 10:00am',
+      'id': 'Selasa, 10:00',
+      'ms': 'Selasa, 10:00 pagi',
+    },
+    'xzmhgv4r': {
+      'en': 'In Progress',
+      'id': 'Sedang berlangsung',
+      'ms': 'Sedang Berlangsung',
+    },
+    '2ndei1xb': {
+      'en': 'ACME Co.',
+      'id': 'ACME Co.',
+      'ms': 'ACME Co.',
+    },
+    '0ljdoy9a': {
+      'en': 'Contracts for New Opportunities',
+      'id': 'Kontrak untuk Peluang Baru',
+      'ms': 'Kontrak untuk Peluang Baru',
+    },
+    'ujs3ac5g': {
+      'en': 'Next Action',
+      'id': 'Tindakan Selanjutnya',
+      'ms': 'Tindakan Seterusnya',
+    },
+    'ycdppc1a': {
+      'en': 'Tuesday, 10:00am',
+      'id': 'Selasa, 10:00',
+      'ms': 'Selasa, 10:00 pagi',
+    },
+    '5id4tzmx': {
+      'en': 'In Progress',
+      'id': 'Sedang berlangsung',
+      'ms': 'Sedang Berlangsung',
+    },
+    'xa3oh10i': {
+      'en': '__',
+      'id': '__',
+      'ms': '__',
+    },
+  },
+  // dashboardQuickyTasksCopyCopy
+  {
+    'v48kx8uj': {
+      'en': 'Quicky Tasks Dashboard',
+      'id': 'Kontrak',
+      'ms': 'Kontrak',
+    },
+    'son3vtnr': {
+      'en': 'Test Quicky Tasks',
+      'id': '',
+      'ms': '',
+    },
+    'vxu1ulm6': {
+      'en': 'Status',
+      'id': '',
+      'ms': '',
+    },
+    'nll5tian': {
+      'en': 'Payments',
+      'id': 'Kontrak',
+      'ms': 'Kontrak',
+    },
+    'vpqgerrw': {
+      'en': 'Test Quicky Tasks',
+      'id': '',
+      'ms': '',
+    },
+    'yp3kjgpa': {
+      'en': 'Status',
+      'id': '',
+      'ms': '',
+    },
+    'lg9cztni': {
+      'en': 'Events Actions',
+      'id': 'Proyek',
+      'ms': 'Projek',
+    },
+    'uszx64t4': {
+      'en': 'Events',
+      'id': 'Kontrak',
+      'ms': 'Kontrak',
+    },
+    'aeqw4mm7': {
+      'en': 'Earnings',
+      'id': '',
+      'ms': '',
+    },
+    'wvdepdjo': {
+      'en': 'To withdraw',
+      'id': '',
+      'ms': '',
+    },
+    'uyc1asfq': {
+      'en': 'ACME Co.',
+      'id': 'ACME Co.',
+      'ms': 'ACME Co.',
+    },
+    'gauvkp17': {
+      'en': 'Contracts for New Opportunities',
+      'id': 'Kontrak untuk Peluang Baru',
+      'ms': 'Kontrak untuk Peluang Baru',
+    },
+    'umuya0lu': {
+      'en': 'Next Action',
+      'id': 'Tindakan Selanjutnya',
+      'ms': 'Tindakan Seterusnya',
+    },
+    'oq4p817l': {
+      'en': 'Tuesday, 10:00am',
+      'id': 'Selasa, 10:00',
+      'ms': 'Selasa, 10:00 pagi',
+    },
+    'uptd0kyf': {
+      'en': 'In Progress',
+      'id': 'Sedang berlangsung',
+      'ms': 'Sedang Berlangsung',
+    },
+    'j7hhuxt3': {
+      'en': '__',
+      'id': '__',
+      'ms': '__',
     },
   },
   // modal_success
@@ -2043,6 +2279,141 @@ final kTranslationsMap = <Map<String, Map<String, String>>>[
     },
     '512z2l0e': {
       'en': 'Update Materials',
+      'id': '',
+      'ms': '',
+    },
+  },
+  // createEvent
+  {
+    'exxyn7st': {
+      'en': 'Create New Event',
+      'id': '',
+      'ms': '',
+    },
+    'mi4jj641': {
+      'en':
+          'Upload images about your company and fill out the information below.',
+      'id': '',
+      'ms': '',
+    },
+    '5gd8m7np': {
+      'en': 'Event description',
+      'id': '',
+      'ms': '',
+    },
+    'akctu7jx': {
+      'en': 'Location complement (SmartFit, Starbucks)',
+      'id': '',
+      'ms': '',
+    },
+    '7kdyyi1o': {
+      'en': '',
+      'id': '',
+      'ms': '',
+    },
+    'c964lvq2': {
+      'en': 'Maximum people',
+      'id': '',
+      'ms': '',
+    },
+    '1hk3fgvg': {
+      'en': 'Select Location',
+      'id': '',
+      'ms': '',
+    },
+    'aghzh3uy': {
+      'en': 'Select instructor...',
+      'id': '',
+      'ms': '',
+    },
+    '4er0xh82': {
+      'en': 'Search...',
+      'id': '',
+      'ms': '',
+    },
+    'dq4emxcg': {
+      'en': 'Option 1',
+      'id': '',
+      'ms': '',
+    },
+    's7ujqwi8': {
+      'en': 'Option 2',
+      'id': '',
+      'ms': '',
+    },
+    'dhhsrvv7': {
+      'en': 'Option 3',
+      'id': '',
+      'ms': '',
+    },
+    'qj9wxpt3': {
+      'en': 'Add kit',
+      'id': '',
+      'ms': '',
+    },
+    'wiit5hu7': {
+      'en': 'Buy kit in advance',
+      'id': '',
+      'ms': '',
+    },
+    '0e1c5678': {
+      'en': 'Cancel',
+      'id': '',
+      'ms': '',
+    },
+    'v06nbqj1': {
+      'en': 'Create new event',
+      'id': '',
+      'ms': '',
+    },
+  },
+  // editStepsCopy2
+  {
+    '5pk9dtib': {
+      'en': 'New Kit',
+      'id': '',
+      'ms': '',
+    },
+    'z7z4pysw': {
+      'en': 'New kit for events',
+      'id': '',
+      'ms': '',
+    },
+    'sqvdxn5q': {
+      'en': 'Description',
+      'id': '',
+      'ms': '',
+    },
+    'hgs69hxf': {
+      'en': 'Price',
+      'id': '',
+      'ms': '',
+    },
+    '2chz7mgx': {
+      'en': 'Cancel',
+      'id': '',
+      'ms': '',
+    },
+    'qi8dgbxl': {
+      'en': 'Create Kit',
+      'id': '',
+      'ms': '',
+    },
+  },
+  // createEventCopy
+  {
+    'ypgwdekn': {
+      'en': 'Espaço para localizacao',
+      'id': '',
+      'ms': '',
+    },
+    'eea2g97q': {
+      'en': 'Edit Kit',
+      'id': '',
+      'ms': '',
+    },
+    '3p6tyneg': {
+      'en': 'Cancel',
       'id': '',
       'ms': '',
     },

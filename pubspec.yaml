@@ -56,10 +56,15 @@ dependencies:
   flip_card: 0.7.0
   flutter_animate: 4.5.0
   flutter_cache_manager: 3.4.1
+  flutter_google_places: 
+    git:
+      url: https://github.com/ShehanYjoz/flutter_google_places.git
+      ref: 52ddef33b785fac671a04dd387c5ba7d921709bf
   flutter_plugin_android_lifecycle: 2.0.28
   font_awesome_flutter: 10.7.0
   from_css_color: 2.0.0
   go_router: 12.1.3
+  google_api_headers: 4.5.3
   google_fonts: 6.1.0
   google_sign_in: 6.3.0
   google_sign_in_android: 6.2.1
@@ -79,6 +84,8 @@ dependencies:
   intl: 0.20.2
   json_path: 0.7.2
   mime_type: 1.0.0
+  package_info_plus: 8.0.2
+  package_info_plus_platform_interface: 3.0.1
   page_transition: 2.1.0
   path_provider: 2.1.4
   path_provider_android: 2.2.10
@@ -139,7 +146,10 @@ dependencies:
   cupertino_icons: ^1.0.0
 
 dependency_overrides:
+  google_api_headers: 4.5.3
   http: 1.4.0
+  package_info_plus: 8.0.2
+  package_info_plus_platform_interface: 3.0.1
   uuid: ^4.0.0
 
 dev_dependencies:

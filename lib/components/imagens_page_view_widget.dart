@@ -1,4 +1,5 @@
 import '/flutter_flow/flutter_flow_util.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'imagens_page_view_model.dart';
 export 'imagens_page_view_model.dart';
@@ -68,8 +69,10 @@ class _ImagensPageViewWidgetState extends State<ImagensPageViewWidget> {
                       padding: EdgeInsets.all(2.0),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(12.0),
-                        child: Image.network(
-                          photosItem,
+                        child: CachedNetworkImage(
+                          fadeInDuration: Duration(milliseconds: 500),
+                          fadeOutDuration: Duration(milliseconds: 500),
+                          imageUrl: photosItem,
                           width: double.infinity,
                           height: 230.0,
                           fit: BoxFit.cover,

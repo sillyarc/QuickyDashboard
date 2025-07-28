@@ -335,8 +335,15 @@ class _EdittaskWidgetState extends State<EdittaskWidget> {
                                               mainAxisSize: MainAxisSize.max,
                                               children: [
                                                 Text(
-                                                  _model.yourNameTextController1
-                                                      .text,
+                                                  /* NOT RECOMMENDED */ _model
+                                                              .yourNameTextController1
+                                                              .text ==
+                                                          'true'
+                                                      ? _model
+                                                          .yourNameTextController1
+                                                          .text
+                                                      : edittaskTasksPreProntasRecord
+                                                          .categoria,
                                                   style: FlutterFlowTheme.of(
                                                           context)
                                                       .bodyMedium
@@ -368,9 +375,15 @@ class _EdittaskWidgetState extends State<EdittaskWidget> {
                                                             .fromSTEB(0.0, 20.0,
                                                                 0.0, 0.0),
                                                     child: Text(
-                                                      _model
-                                                          .yourNameTextController2
-                                                          .text,
+                                                      /* NOT RECOMMENDED */ _model
+                                                                  .yourNameTextController2
+                                                                  .text ==
+                                                              'true'
+                                                          ? _model
+                                                              .yourNameTextController2
+                                                              .text
+                                                          : edittaskTasksPreProntasRecord
+                                                              .descricao,
                                                       style: FlutterFlowTheme
                                                               .of(context)
                                                           .bodyMedium
@@ -423,11 +436,21 @@ class _EdittaskWidgetState extends State<EdittaskWidget> {
                                               EdgeInsetsDirectional.fromSTEB(
                                                   10.0, 0.0, 10.0, 0.0),
                                           child: Text(
-                                            valueOrDefault<String>(
-                                              _model
-                                                  .yourNameTextController3.text,
-                                              'Price',
-                                            ),
+                                            /* NOT RECOMMENDED */ _model
+                                                        .yourNameTextController3
+                                                        .text ==
+                                                    'true'
+                                                ? _model.yourNameTextController3
+                                                    .text
+                                                : formatNumber(
+                                                    edittaskTasksPreProntasRecord
+                                                        .preco,
+                                                    formatType:
+                                                        FormatType.decimal,
+                                                    decimalType: DecimalType
+                                                        .commaDecimal,
+                                                    currency: '\$ ',
+                                                  ),
                                             style: FlutterFlowTheme.of(context)
                                                 .bodyMedium
                                                 .override(

@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 
 import '/flutter_flow/flutter_flow_util.dart';
@@ -29,6 +30,31 @@ class HealthCheckCall {
         response,
         r'''$.status''',
       ));
+}
+
+class LatlngToAddressCall {
+  static Future<ApiCallResponse> call({
+    String? longitude = '',
+    String? latitude = '',
+  }) async {
+    return ApiManager.instance.makeApiCall(
+      callName: 'latlng to address',
+      apiUrl:
+          'https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=AIzaSyCFBfcNHFg97sM7EhKnAP4OHIoY3Q8Y_xQ',
+      callType: ApiCallType.GET,
+      headers: {},
+      params: {
+        'latitude': latitude,
+        'longitude': longitude,
+      },
+      returnBody: true,
+      encodeBodyUtf8: false,
+      decodeUtf8: false,
+      cache: false,
+      isStreamingApi: false,
+      alwaysAllowBody: false,
+    );
+  }
 }
 
 class ApiPagingParams {

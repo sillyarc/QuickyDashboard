@@ -35,6 +35,21 @@ class PagamentosRecord extends FirestoreRecord {
   DateTime? get data => _data;
   bool hasData() => _data != null;
 
+  // "status" field.
+  String? _status;
+  String get status => _status ?? '';
+  bool hasStatus() => _status != null;
+
+  // "withdraw" field.
+  bool? _withdraw;
+  bool get withdraw => _withdraw ?? false;
+  bool hasWithdraw() => _withdraw != null;
+
+  // "qsToken" field.
+  double? _qsToken;
+  double get qsToken => _qsToken ?? 0.0;
+  bool hasQsToken() => _qsToken != null;
+
   DocumentReference get parentReference => reference.parent.parent!;
 
   void _initializeFields() {
@@ -42,6 +57,9 @@ class PagamentosRecord extends FirestoreRecord {
     _valor = castToType<double>(snapshotData['valor']);
     _tasks = snapshotData['tasks'] as DocumentReference?;
     _data = snapshotData['data'] as DateTime?;
+    _status = snapshotData['status'] as String?;
+    _withdraw = snapshotData['withdraw'] as bool?;
+    _qsToken = castToType<double>(snapshotData['qsToken']);
   }
 
   static Query<Map<String, dynamic>> collection([DocumentReference? parent]) =>
@@ -88,6 +106,9 @@ Map<String, dynamic> createPagamentosRecordData({
   double? valor,
   DocumentReference? tasks,
   DateTime? data,
+  String? status,
+  bool? withdraw,
+  double? qsToken,
 }) {
   final firestoreData = mapToFirestore(
     <String, dynamic>{
@@ -95,6 +116,9 @@ Map<String, dynamic> createPagamentosRecordData({
       'valor': valor,
       'tasks': tasks,
       'data': data,
+      'status': status,
+      'withdraw': withdraw,
+      'qsToken': qsToken,
     }.withoutNulls,
   );
 
@@ -109,12 +133,22 @@ class PagamentosRecordDocumentEquality implements Equality<PagamentosRecord> {
     return e1?.paymentId == e2?.paymentId &&
         e1?.valor == e2?.valor &&
         e1?.tasks == e2?.tasks &&
-        e1?.data == e2?.data;
+        e1?.data == e2?.data &&
+        e1?.status == e2?.status &&
+        e1?.withdraw == e2?.withdraw &&
+        e1?.qsToken == e2?.qsToken;
   }
 
   @override
-  int hash(PagamentosRecord? e) =>
-      const ListEquality().hash([e?.paymentId, e?.valor, e?.tasks, e?.data]);
+  int hash(PagamentosRecord? e) => const ListEquality().hash([
+        e?.paymentId,
+        e?.valor,
+        e?.tasks,
+        e?.data,
+        e?.status,
+        e?.withdraw,
+        e?.qsToken
+      ]);
 
   @override
   bool isValidKey(Object? o) => o is PagamentosRecord;

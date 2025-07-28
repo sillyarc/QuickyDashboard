@@ -28,3 +28,7 @@ export '/pages/taskspreprontas/taskspreprontas_widget.dart'
 export '/pages/edittask_copy/edittask_copy_widget.dart' show EdittaskCopyWidget;
 export '/pages/forgot_password_copy/forgot_password_copy_widget.dart'
     show ForgotPasswordCopyWidget;
+export '/pages/dashboard_quicky_tasks_copy/dashboard_quicky_tasks_copy_widget.dart'
+    show DashboardQuickyTasksCopyWidget;
+export '/pages/dashboard_quicky_tasks_copy_copy/dashboard_quicky_tasks_copy_copy_widget.dart'
+    show DashboardQuickyTasksCopyCopyWidget;
