@@ -95,6 +95,11 @@ class UsersRecord extends FirestoreRecord {
   String get stateEtinia => _stateEtinia ?? '';
   bool hasStateEtinia() => _stateEtinia != null;
 
+  // "online" field.
+  bool? _online;
+  bool get online => _online ?? false;
+  bool hasOnline() => _online != null;
+
   void _initializeFields() {
     _email = snapshotData['email'] as String?;
     _displayName = snapshotData['display_name'] as String?;
@@ -107,11 +112,13 @@ class UsersRecord extends FirestoreRecord {
     _tasksCompleted = getDataList(snapshotData['tasksCompleted']);
     _requestPedidos = getDataList(snapshotData['requestPedidos']);
     _requestEmNumber = castToType<int>(snapshotData['requestEmNumber']);
-    _plataform = getDataList(snapshotData['plataform']);
+    _plataform =
+        getDataList(snapshotData['plaform'] ?? snapshotData['plataform']);
     _taskOrTaskee = snapshotData['taskOrTaskee'] as String?;
     _data = snapshotData['Data'] as DateTime?;
     _tempo = snapshotData['Tempo'] as DateTime?;
     _stateEtinia = snapshotData['stateEtinia'] as String?;
+    _online = snapshotData['online'] as bool?;
   }
 
   static CollectionReference get collection =>
@@ -161,6 +168,7 @@ Map<String, dynamic> createUsersRecordData({
   DateTime? data,
   DateTime? tempo,
   String? stateEtinia,
+  bool? online,
 }) {
   final firestoreData = mapToFirestore(
     <String, dynamic>{
@@ -177,6 +185,7 @@ Map<String, dynamic> createUsersRecordData({
       'Data': data,
       'Tempo': tempo,
       'stateEtinia': stateEtinia,
+      'online': online,
     }.withoutNulls,
   );
 
@@ -204,7 +213,8 @@ class UsersRecordDocumentEquality implements Equality<UsersRecord> {
         e1?.taskOrTaskee == e2?.taskOrTaskee &&
         e1?.data == e2?.data &&
         e1?.tempo == e2?.tempo &&
-        e1?.stateEtinia == e2?.stateEtinia;
+        e1?.stateEtinia == e2?.stateEtinia &&
+        e1?.online == e2?.online;
   }
 
   @override
@@ -224,7 +234,8 @@ class UsersRecordDocumentEquality implements Equality<UsersRecord> {
         e?.taskOrTaskee,
         e?.data,
         e?.tempo,
-        e?.stateEtinia
+        e?.stateEtinia,
+        e?.online
       ]);
 
   @override

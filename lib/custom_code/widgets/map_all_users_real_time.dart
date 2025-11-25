@@ -242,6 +242,7 @@ class _MapAllUsersRealTimeState extends State<MapAllUsersRealTime> {
 
   List<String> _platforms(UsersRecord u) {
     final all = <String>[
+      ..._ls(u.snapshotData, 'plaform'),
       ..._ls(u.snapshotData, 'plataform'),
       ..._ls(u.snapshotData, 'platform'),
       ..._ls(u.snapshotData, 'plataforma'),

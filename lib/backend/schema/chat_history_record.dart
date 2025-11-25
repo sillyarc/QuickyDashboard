@@ -50,6 +50,11 @@ class ChatHistoryRecord extends FirestoreRecord {
   bool get orderAgain => _orderAgain ?? false;
   bool hasOrderAgain() => _orderAgain != null;
 
+  // "rideSOS" field.
+  bool? _rideSOS;
+  bool get rideSOS => _rideSOS ?? false;
+  bool hasRideSOS() => _rideSOS != null;
+
   DocumentReference get parentReference => reference.parent.parent!;
 
   void _initializeFields() {
@@ -60,6 +65,7 @@ class ChatHistoryRecord extends FirestoreRecord {
     _msgdosystema = snapshotData['msgdosystema'] as bool?;
     _foto = snapshotData['foto'] as String?;
     _orderAgain = snapshotData['orderAgain'] as bool?;
+    _rideSOS = snapshotData['rideSOS'] as bool?;
   }
 
   static Query<Map<String, dynamic>> collection([DocumentReference? parent]) =>
@@ -109,6 +115,7 @@ Map<String, dynamic> createChatHistoryRecordData({
   bool? msgdosystema,
   String? foto,
   bool? orderAgain,
+  bool? rideSOS,
 }) {
   final firestoreData = mapToFirestore(
     <String, dynamic>{
@@ -119,6 +126,7 @@ Map<String, dynamic> createChatHistoryRecordData({
       'msgdosystema': msgdosystema,
       'foto': foto,
       'orderAgain': orderAgain,
+      'rideSOS': rideSOS,
     }.withoutNulls,
   );
 
@@ -136,7 +144,8 @@ class ChatHistoryRecordDocumentEquality implements Equality<ChatHistoryRecord> {
         e1?.msg == e2?.msg &&
         e1?.msgdosystema == e2?.msgdosystema &&
         e1?.foto == e2?.foto &&
-        e1?.orderAgain == e2?.orderAgain;
+        e1?.orderAgain == e2?.orderAgain &&
+        e1?.rideSOS == e2?.rideSOS;
   }
 
   @override
@@ -147,7 +156,8 @@ class ChatHistoryRecordDocumentEquality implements Equality<ChatHistoryRecord> {
         e?.msg,
         e?.msgdosystema,
         e?.foto,
-        e?.orderAgain
+        e?.orderAgain,
+        e?.rideSOS
       ]);
 
   @override

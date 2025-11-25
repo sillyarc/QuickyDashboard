@@ -222,7 +222,7 @@ class _AllUserWidgetState extends State<AllUserWidget> {
                           stream: queryUsersRecord(
                             queryBuilder: (usersRecord) =>
                                 usersRecord.whereArrayContainsAny(
-                                    'plataform', _model.riders),
+                                    'plaform', _model.riders),
                           ),
                           builder: (context, snapshot) {
                             // Customize what your widget looks like when it's loading.
@@ -616,7 +616,7 @@ class _AllUserWidgetState extends State<AllUserWidget> {
                           stream: queryUsersRecord(
                             queryBuilder: (usersRecord) =>
                                 usersRecord.whereArrayContainsAny(
-                                    'plataform', _model.riders),
+                                    'plaform', _model.riders),
                           ),
                           builder: (context, snapshot) {
                             // Customize what your widget looks like when it's loading.
@@ -1016,7 +1016,7 @@ class _AllUserWidgetState extends State<AllUserWidget> {
                           stream: queryUsersRecord(
                             queryBuilder: (usersRecord) =>
                                 usersRecord.whereArrayContainsAny(
-                                    'plataform', _model.riders),
+                                    'plaform', _model.riders),
                           ),
                           builder: (context, snapshot) {
                             // Customize what your widget looks like when it's loading.

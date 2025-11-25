@@ -48,6 +48,9 @@ class FirebaseAuthManager extends AuthManager
         JwtSignInManager,
         GithubSignInManager,
         PhoneSignInManager {
+  String? _lastAuthError;
+  String? get lastAuthError => _lastAuthError;
+
   // Set when using phone verification (after phone number is provided).
   String? _phoneAuthVerificationCode;
   // Set when using phone sign in in web mode (ignored otherwise).
@@ -302,6 +305,7 @@ class FirebaseAuthManager extends AuthManager
     String authProvider,
   ) async {
     try {
+      _lastAuthError = null;
       final userCredential = await signInFunc();
       if (userCredential?.user != null) {
         await maybeCreateUser(userCredential!.user!);
@@ -317,6 +321,7 @@ class FirebaseAuthManager extends AuthManager
           'Error: The supplied auth credential is incorrect, malformed or has expired',
         _ => 'Error: ${e.message!}',
       };
+      _lastAuthError = errorMsg;
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(errorMsg)),

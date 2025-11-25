@@ -12,6 +12,7 @@ import 'backend/firebase/firebase_config.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import 'flutter_flow/flutter_flow_util.dart';
 import 'flutter_flow/internationalization.dart';
+import 'components/admin_sos_chat_widget.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -112,6 +113,18 @@ class _MyAppState extends State<MyApp> {
       debugShowCheckedModeBanner: false,
       title: 'Quicky DashboardAdmin',
       scrollBehavior: MyAppScrollBehavior(),
+      builder: (context, child) {
+        final platforms = (currentUserDocument?.plataform.toList() ?? []);
+        final canSeeAdminSos = loggedIn &&
+            (platforms.contains('Ride Admin') ||
+                platforms.contains('Quicky Admin'));
+        return Stack(
+          children: [
+            if (child != null) child,
+            if (canSeeAdminSos) const AdminSosChatWidget(),
+          ],
+        );
+      },
       localizationsDelegates: [
         FFLocalizationsDelegate(),
         GlobalMaterialLocalizations.delegate,

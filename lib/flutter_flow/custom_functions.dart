@@ -36,12 +36,12 @@ String retornListMsmLinha(List<String> plataforms) {
 }
 
 bool verifyEmail(String email) {
-  // se o email for diferente de emails que sejam desse tipo começa com "quicky" depois o @ vem um nome da pessoa e ".admin" "quicky@nomedapessoa.admin" retorne false
-  // Verifica se o email começa com "quicky" e termina com ".admin"
-  if (email.startsWith('quicky') && email.endsWith('.admin')) {
-    return false;
-  }
-  return true;
+  // Valida se o e-mail é corporativo da Quicky
+  // aceitando endereços que contenham "quicky" e terminem com ".admin".
+  final normalizedEmail = email.trim().toLowerCase();
+  final hasQuicky = normalizedEmail.contains('quicky');
+  final endsWithAdmin = normalizedEmail.endsWith('.admin');
+  return hasQuicky && endsWithAdmin;
 }
 
 String listaVirgula(List<String> list) {
@@ -50,7 +50,9 @@ String listaVirgula(List<String> list) {
 }
 
 double quantodetokentem(double? value) {
-  // baseando-se que cada token é 2.5 e 4 tokens é $10, 10 é $25, 20 é $50 e 50 é $125 retorne os tokens baseado no valor mas tem q ser o exato baseado q cada token é 2.5
+  // baseando-se que cada token é 2.5 e 4 tokens é $10, 10 é $25,
+  // 20 é $50 e 50 é $125, retorna os tokens baseado no valor mas
+  // tem que ser o exato baseado que cada token é 2.5.
   if (value == null || value < 2.5) {
     return 0;
   }
@@ -58,7 +60,7 @@ double quantodetokentem(double? value) {
 }
 
 int indexList1(String indexList) {
-  // faça q quando o indexlist retornar 0 no front end ser 1 e etc
+  // faça que quando o indexlist retornar 0 no front end ser 1 e etc
   int index =
       int.tryParse(indexList) ?? 0; // Convert string to int, default to 0
   return index + 1; // Increment index by 1

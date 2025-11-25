@@ -24,6 +24,7 @@ class LoginWidget extends StatefulWidget {
 class _LoginWidgetState extends State<LoginWidget>
     with TickerProviderStateMixin {
   late LoginModel _model;
+  String? _loginErrorMessage;
 
   final scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -655,6 +656,59 @@ class _LoginWidgetState extends State<LoginWidget>
                                   ],
                                 ),
                               ),
+                              if (_loginErrorMessage != null)
+                                Padding(
+                                  padding: EdgeInsetsDirectional.fromSTEB(
+                                      0.0, 16.0, 0.0, 0.0),
+                                  child: Container(
+                                    width: double.infinity,
+                                    padding: EdgeInsetsDirectional.fromSTEB(
+                                        16.0, 12.0, 16.0, 12.0),
+                                    decoration: BoxDecoration(
+                                      color: Color(0xFF242424),
+                                      borderRadius: BorderRadius.circular(
+                                          12.0),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Não foi possível fazer login',
+                                          style: FlutterFlowTheme.of(context)
+                                              .titleSmall
+                                              .override(
+                                                font: GoogleFonts.poppins(
+                                                  fontWeight: FontWeight.w600,
+                                                  fontStyle: FontStyle.italic,
+                                                ),
+                                                color: Colors.white,
+                                                fontSize: 16.0,
+                                                letterSpacing: 0.0,
+                                              ),
+                                        ),
+                                        SizedBox(height: 4.0),
+                                        Text(
+                                          _loginErrorMessage!,
+                                          style: FlutterFlowTheme.of(context)
+                                              .bodySmall
+                                              .override(
+                                                font: GoogleFonts.poppins(
+                                                  fontWeight:
+                                                      FontWeight.normal,
+                                                  fontStyle:
+                                                      FontStyle.normal,
+                                                ),
+                                                color: Color(0xFF9E9E9E),
+                                                fontSize: 12.0,
+                                                letterSpacing: 0.0,
+                                                lineHeight: 14.0 / 12.0,
+                                              ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
                               Padding(
                                 padding: EdgeInsetsDirectional.fromSTEB(
                                     0.0, 24.0, 0.0, 0.0),
@@ -714,29 +768,50 @@ class _LoginWidgetState extends State<LoginWidget>
                                         'buttonOnPageLoadAnimation1']!),
                                     FFButtonWidget(
                                       onPressed: () async {
-                                        Function() _navigate = () {};
-                                        if (!functions.verifyEmail(_model
-                                            .emailAddressTextController.text)) {
-                                          GoRouter.of(context)
-                                              .prepareAuthEvent();
+                                        final email = _model
+                                            .emailAddressTextController.text
+                                            .trim();
+                                        final password = _model
+                                            .passwordTextController.text;
 
-                                          final user =
-                                              await authManager.signInWithEmail(
-                                            context,
-                                            _model.emailAddressTextController
-                                                .text,
-                                            _model.passwordTextController.text,
-                                          );
-                                          if (user == null) {
-                                            return;
-                                          }
-
-                                          _navigate = () => context.goNamedAuth(
-                                              InitialPageWidget.routeName,
-                                              context.mounted);
+                                        if (!functions.verifyEmail(email)) {
+                                          setState(() {
+                                            _loginErrorMessage =
+                                                'Use um e-mail corporativo válido (@quicky.admin).';
+                                          });
+                                          return;
                                         }
 
-                                        _navigate();
+                                        GoRouter.of(context)
+                                            .prepareAuthEvent();
+
+                                        final user =
+                                            await authManager.signInWithEmail(
+                                          context,
+                                          email,
+                                          password,
+                                        );
+                                        if (user == null) {
+                                          setState(() {
+                                            _loginErrorMessage =
+                                                authManager.lastAuthError ??
+                                                    'Não foi possível fazer login. Verifique suas credenciais.';
+                                          });
+                                          return;
+                                        }
+
+                                        if (!mounted) {
+                                          return;
+                                        }
+
+                                        setState(() {
+                                          _loginErrorMessage = null;
+                                        });
+
+                                        context.goNamedAuth(
+                                          InitialPageWidget.routeName,
+                                          context.mounted,
+                                        );
                                       },
                                       text: FFLocalizations.of(context).getText(
                                         'm9klj9ah' /* Login */,

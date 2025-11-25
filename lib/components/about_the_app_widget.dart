@@ -235,6 +235,7 @@ class _AboutTheAppWidgetState extends State<AboutTheAppWidget> {
                   FFButtonWidget(
                     onPressed: () async {
                       GoRouter.of(context).prepareAuthEvent();
+                      await currentUserReference?.update({'online': false});
                       await authManager.signOut();
                       GoRouter.of(context).clearRedirectLocation();
 

@@ -34,6 +34,7 @@ class _InitialPageWidgetState extends State<InitialPageWidget> {
 
     // On page load action.
     SchedulerBinding.instance.addPostFrameCallback((_) async {
+      await currentUserReference?.update({'online': true});
       _model.instantTimer = InstantTimer.periodic(
         duration: Duration(milliseconds: 5000),
         callback: (timer) async {
@@ -49,6 +50,7 @@ class _InitialPageWidgetState extends State<InitialPageWidget> {
 
   @override
   void dispose() {
+    currentUserReference?.update({'online': false});
     _model.dispose();
 
     super.dispose();
@@ -114,7 +116,7 @@ class _InitialPageWidgetState extends State<InitialPageWidget> {
                           );
                         } else if (!(currentUserDocument?.plataform.toList() ??
                                     [])
-                                .contains('Ride Admin') ||
+                                .contains('Ride Admin') &&
                             !(currentUserDocument?.plataform.toList() ?? [])
                                 .contains('Ride Partner')) {
                           return Row(

@@ -35,11 +35,17 @@ class ChatRecord extends FirestoreRecord {
   DateTime? get ultimaMsg => _ultimaMsg;
   bool hasUltimaMsg() => _ultimaMsg != null;
 
+  // "rideSOS" field.
+  bool? _rideSOS;
+  bool get rideSOS => _rideSOS ?? false;
+  bool hasRideSOS() => _rideSOS != null;
+
   void _initializeFields() {
     _referenceTask = snapshotData['referenceTask'] as DocumentReference?;
     _user2Document = snapshotData['user2Document'] as DocumentReference?;
     _userDocument = snapshotData['userDocument'] as DocumentReference?;
     _ultimaMsg = snapshotData['ultimaMsg'] as DateTime?;
+    _rideSOS = snapshotData['rideSOS'] as bool?;
   }
 
   static CollectionReference get collection =>
@@ -80,6 +86,7 @@ Map<String, dynamic> createChatRecordData({
   DocumentReference? user2Document,
   DocumentReference? userDocument,
   DateTime? ultimaMsg,
+  bool? rideSOS,
 }) {
   final firestoreData = mapToFirestore(
     <String, dynamic>{
@@ -87,6 +94,7 @@ Map<String, dynamic> createChatRecordData({
       'user2Document': user2Document,
       'userDocument': userDocument,
       'ultimaMsg': ultimaMsg,
+      'rideSOS': rideSOS,
     }.withoutNulls,
   );
 
@@ -101,12 +109,13 @@ class ChatRecordDocumentEquality implements Equality<ChatRecord> {
     return e1?.referenceTask == e2?.referenceTask &&
         e1?.user2Document == e2?.user2Document &&
         e1?.userDocument == e2?.userDocument &&
-        e1?.ultimaMsg == e2?.ultimaMsg;
+        e1?.ultimaMsg == e2?.ultimaMsg &&
+        e1?.rideSOS == e2?.rideSOS;
   }
 
   @override
   int hash(ChatRecord? e) => const ListEquality().hash(
-      [e?.referenceTask, e?.user2Document, e?.userDocument, e?.ultimaMsg]);
+      [e?.referenceTask, e?.user2Document, e?.userDocument, e?.ultimaMsg, e?.rideSOS]);
 
   @override
   bool isValidKey(Object? o) => o is ChatRecord;

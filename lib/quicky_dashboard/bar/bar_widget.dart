@@ -138,7 +138,7 @@ Dashboard */
                         child: StreamBuilder<List<UsersRecord>>(
                           stream: queryUsersRecord(
                             queryBuilder: (usersRecord) => usersRecord.where(
-                              'plataform',
+                              'plaform',
                               arrayContains: 'Quicky Admin',
                             ),
                           ),
