@@ -112,8 +112,14 @@ class UsersRecord extends FirestoreRecord {
     _tasksCompleted = getDataList(snapshotData['tasksCompleted']);
     _requestPedidos = getDataList(snapshotData['requestPedidos']);
     _requestEmNumber = castToType<int>(snapshotData['requestEmNumber']);
-    _plataform =
-        getDataList(snapshotData['plaform'] ?? snapshotData['plataform']);
+    final _rawPlataform = snapshotData['plaform'] ?? snapshotData['plataform'];
+    if (_rawPlataform is List) {
+      _plataform = getDataList(_rawPlataform);
+    } else if (_rawPlataform is String && _rawPlataform.isNotEmpty) {
+      _plataform = <String>[_rawPlataform];
+    } else {
+      _plataform = null;
+    }
     _taskOrTaskee = snapshotData['taskOrTaskee'] as String?;
     _data = snapshotData['Data'] as DateTime?;
     _tempo = snapshotData['Tempo'] as DateTime?;

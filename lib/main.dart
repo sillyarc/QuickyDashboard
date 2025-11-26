@@ -113,18 +113,6 @@ class _MyAppState extends State<MyApp> {
       debugShowCheckedModeBanner: false,
       title: 'Quicky DashboardAdmin',
       scrollBehavior: MyAppScrollBehavior(),
-      builder: (context, child) {
-        final platforms = (currentUserDocument?.plataform.toList() ?? []);
-        final canSeeAdminSos = loggedIn &&
-            (platforms.contains('Ride Admin') ||
-                platforms.contains('Quicky Admin'));
-        return Stack(
-          children: [
-            if (child != null) child,
-            if (canSeeAdminSos) const AdminSosChatWidget(),
-          ],
-        );
-      },
       localizationsDelegates: [
         FFLocalizationsDelegate(),
         GlobalMaterialLocalizations.delegate,
@@ -149,6 +137,23 @@ class _MyAppState extends State<MyApp> {
       ),
       themeMode: _themeMode,
       routerConfig: _router,
+      builder: (context, child) {
+        return AuthUserStreamWidget(
+          builder: (context) {
+            final platforms =
+                (currentUserDocument?.plataform.toList() ?? []);
+            final canSeeAdminSos = loggedIn &&
+                (platforms.contains('Ride Admin') ||
+                    platforms.contains('Quicky Admin'));
+            return Stack(
+              children: [
+                if (child != null) child,
+                if (canSeeAdminSos) const AdminSosChatWidget(),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 }

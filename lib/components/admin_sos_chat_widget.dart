@@ -16,6 +16,10 @@ class AdminSosChatWidget extends StatefulWidget {
 class _AdminSosChatWidgetState extends State<AdminSosChatWidget> {
   bool _isOpen = false;
   ChatRecord? _selectedChat;
+  bool _showingHistoryList = true;
+  ChatRecord? _selectedHistoryChat;
+  bool _initializedSelection = false;
+  DocumentReference? _selectedSosChatRef;
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _messagesScrollController = ScrollController();
 
@@ -31,6 +35,69 @@ class _AdminSosChatWidgetState extends State<AdminSosChatWidget> {
     final first = parts.first.substring(0, 1);
     final last = parts.last.substring(0, 1);
     return (first + last).toUpperCase();
+  }
+
+  String _formatMessageText(String text) {
+    final lower = text.toLowerCase();
+    if (!lower.contains('resumo autom')) {
+      return text;
+    }
+
+    var result = text;
+
+    // Header
+    result = result.replaceAll(
+        RegExp(r'Resumo autom[^\n]*', caseSensitive: false),
+        'Automatic SOS summary from the safety screen:');
+
+    // Sections
+    result = result.replaceAll(
+        RegExp(r'Motivos selecionados:? ?', caseSensitive: false),
+        'Selected reasons:');
+    result = result.replaceAll(
+        RegExp(r'Perguntas r[^\n]*:', caseSensitive: false),
+        'Quick questions:');
+
+    // Reasons (common options)
+    result = result.replaceAll('Motorista inseguro', 'Unsafe driver');
+    result = result.replaceAll('Assédio sexual', 'Sexual harassment');
+    result = result.replaceAll('Ass�dio sexual', 'Sexual harassment');
+    result = result.replaceAll('Não é meu motorista', 'Not my driver');
+    result = result.replaceAll('N�o � meu motorista', 'Not my driver');
+    result = result.replaceAll('Entrei no carro errado', 'I entered the wrong car');
+
+    // Questions
+    result = result.replaceAll(
+      RegExp(
+          r'Você está em perigo físico imediato\?\s*',
+          caseSensitive: false),
+      'Are you in immediate physical danger? ',
+    );
+    result = result.replaceAll(
+      RegExp(
+          r'Há risco de perder seus pertences\?\s*',
+          caseSensitive: false),
+      'Is there a risk of losing your belongings? ',
+    );
+    result = result.replaceAll(
+      RegExp(
+          r'O motorista sabe que você contatou a RIDE\?\s*',
+          caseSensitive: false),
+      'Does the driver know you contacted RIDE? ',
+    );
+    result = result.replaceAll(
+      RegExp(
+          r'Você está dentro do veículo agora\?\s*',
+          caseSensitive: false),
+      'Are you inside the vehicle now? ',
+    );
+
+    // Yes/No
+    result = result.replaceAll(RegExp(r'\bSim\b', caseSensitive: false), 'Yes');
+    result = result.replaceAll(RegExp(r'\bNão\b', caseSensitive: false), 'No');
+    result = result.replaceAll(RegExp(r'\bN�o\b', caseSensitive: false), 'No');
+
+    return result;
   }
 
   @override
@@ -64,13 +131,14 @@ class _AdminSosChatWidgetState extends State<AdminSosChatWidget> {
           height: 56.0,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            gradient: LinearGradient(
+            gradient: const LinearGradient(
               colors: [
-                FlutterFlowTheme.of(context).error,
-                FlutterFlowTheme.of(context).accent2,
+                Color(0xFFFF643A),
+                Color(0xFFFF501F),
+                Color(0xFFDF3A2E),
               ],
-              begin: const AlignmentDirectional(-1.0, 0.0),
-              end: const AlignmentDirectional(1.0, 0.0),
+              begin: AlignmentDirectional(-1.0, 0.0),
+              end: AlignmentDirectional(1.0, 0.0),
             ),
           ),
           child: Icon(
@@ -132,7 +200,7 @@ class _AdminSosChatWidgetState extends State<AdminSosChatWidget> {
         children: [
           Icon(
             Icons.bolt_rounded,
-            color: FlutterFlowTheme.of(context).accent2,
+            color: Color(0xFFFF643A),
           ),
           const SizedBox(width: 8.0),
           Text(
@@ -159,6 +227,9 @@ class _AdminSosChatWidgetState extends State<AdminSosChatWidget> {
               setState(() {
                 _isOpen = false;
                 _selectedChat = null;
+                _selectedHistoryChat = null;
+                _showingHistoryList = true;
+                _initializedSelection = false;
                 _messageController.clear();
               });
             },
@@ -170,7 +241,7 @@ class _AdminSosChatWidgetState extends State<AdminSosChatWidget> {
 
   Widget _buildConversationsList(BuildContext context) {
     return SizedBox(
-      width: 160.0,
+      width: 72.0,
       child: StreamBuilder<List<ChatHistoryRecord>>(
         stream: queryChatHistoryRecord(
           queryBuilder: (history) =>
@@ -197,7 +268,7 @@ class _AdminSosChatWidgetState extends State<AdminSosChatWidget> {
               child: Padding(
                 padding: const EdgeInsets.all(12.0),
                 child: Text(
-                  'Sem SOS ativos',
+                  'No active SOS messages',
                   textAlign: TextAlign.center,
                   style: FlutterFlowTheme.of(context).bodySmall.override(
                         font: GoogleFonts.poppins(
@@ -206,7 +277,7 @@ class _AdminSosChatWidgetState extends State<AdminSosChatWidget> {
                           fontStyle:
                               FlutterFlowTheme.of(context).bodySmall.fontStyle,
                         ),
-                        color: FlutterFlowTheme.of(context).secondaryText,
+                        color: Colors.white,
                         letterSpacing: 0.0,
                       ),
                 ),
@@ -216,25 +287,26 @@ class _AdminSosChatWidgetState extends State<AdminSosChatWidget> {
 
           // Ordena pela �ltima mensagem (mais antiga primeiro)
           // Agrupa por conversa (chat) e usa o primeiro SOS de cada uma.
-          final Map<DocumentReference, ChatHistoryRecord> byChat = {};
+          final Map<DocumentReference, ChatHistoryRecord> byUser = {};
           for (final msg in history) {
-            final parent = msg.parentReference;
-            final existing = byChat[parent];
+            final userRef = msg.documentUser;
+            if (userRef == null) continue;
+            final existing = byUser[userRef];
             if (existing == null) {
-              byChat[parent] = msg;
+              byUser[userRef] = msg;
             } else {
               final existingTime =
                   existing.horario ?? DateTime.fromMillisecondsSinceEpoch(0);
               final newTime =
                   msg.horario ?? DateTime.fromMillisecondsSinceEpoch(0);
               if (newTime.isBefore(existingTime)) {
-                byChat[parent] = msg;
+                byUser[userRef] = msg;
               }
             }
           }
 
           // Ordena pela hora do SOS (mais antigo primeiro).
-          final sortedSos = byChat.values.toList()
+          final sortedSos = byUser.values.toList()
             ..sort((a, b) {
               final aTime = a.horario ?? DateTime.fromMillisecondsSinceEpoch(0);
               final bTime = b.horario ?? DateTime.fromMillisecondsSinceEpoch(0);
@@ -250,8 +322,8 @@ class _AdminSosChatWidgetState extends State<AdminSosChatWidget> {
               final sos = sortedSos[index];
               final chatRef = sos.parentReference;
               final isSelected =
-                  _selectedChat != null &&
-                  _selectedChat!.reference.path == chatRef.path;
+                  _selectedSosChatRef != null &&
+                  _selectedSosChatRef!.path == chatRef.path;
               return FutureBuilder<UsersRecord>(
                 future: sos.documentUser != null
                     ? UsersRecord.getDocumentOnce(sos.documentUser!)
@@ -260,7 +332,7 @@ class _AdminSosChatWidgetState extends State<AdminSosChatWidget> {
                   final user = userSnap.data;
                   final name = user?.displayName.isNotEmpty == true
                       ? user!.displayName
-                      : 'Usuário';
+                      : 'User';
                   return InkWell(
                     onTap: () async {
                       final chat = await ChatRecord.getDocumentOnce(chatRef);
@@ -287,101 +359,72 @@ class _AdminSosChatWidgetState extends State<AdminSosChatWidget> {
                       if (!mounted) return;
                       setState(() {
                         _selectedChat = chat;
+                        _selectedSosChatRef = chatRef;
+                        _showingHistoryList = true;
+                        _selectedHistoryChat = null;
                       });
                     },
                     child: Container(
                       decoration: BoxDecoration(
                         color: const Color(0xFF242424),
                         borderRadius: BorderRadius.circular(10.0),
-                        border: Border.all(
-                          color: isSelected
-                              ? FlutterFlowTheme.of(context).primary
-                              : FlutterFlowTheme.of(context)
-                                  .alternate
-                                  .withOpacity(0.4),
-                          width: isSelected ? 1.2 : 0.8,
-                        ),
+                        border: isSelected
+                            ? Border.all(
+                                color: FlutterFlowTheme.of(context).primary,
+                                width: 1.2,
+                              )
+                            : null,
                       ),
                       padding: const EdgeInsets.symmetric(
                           horizontal: 12.0, vertical: 8.0),
                       child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          CircleAvatar(
-                            radius: 14.0,
-                            backgroundColor:
-                                FlutterFlowTheme.of(context).accent2,
-                            backgroundImage: (user?.photoUrl.isNotEmpty ?? false)
-                                ? NetworkImage(user!.photoUrl)
-                                : null,
-                            child: (user?.photoUrl.isNotEmpty ?? false)
-                                ? null
-                                : Text(
-                                    _buildInitialsFromName(name),
-                                    style: FlutterFlowTheme.of(context)
-                                        .bodySmall
-                                        .override(
-                                          font: GoogleFonts.poppins(
-                                            fontWeight:
-                                                FlutterFlowTheme.of(context)
-                                                    .bodySmall
-                                                    .fontWeight,
-                                            fontStyle:
-                                                FlutterFlowTheme.of(context)
-                                                    .bodySmall
-                                                    .fontStyle,
-                                          ),
-                                          color: Colors.white,
-                                          letterSpacing: 0.0,
-                                        ),
-                                  ),
-                          ),
-                          const SizedBox(width: 8.0),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  name,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: FlutterFlowTheme.of(context)
-                                      .bodyMedium
-                                      .override(
-                                        font: GoogleFonts.poppins(
-                                          fontWeight: FontWeight.w600,
-                                          fontStyle: FontStyle.italic,
-                                        ),
-                                        fontSize: 16.0,
-                                        color: Colors.white,
-                                        letterSpacing: 0.0,
-                                        fontWeight: FontWeight.w600,
-                                        fontStyle: FontStyle.italic,
-                                      ),
+                          if (user?.photoUrl.isNotEmpty ?? false)
+                            CircleAvatar(
+                              radius: 22.0,
+                              backgroundColor:
+                                  FlutterFlowTheme.of(context).accent2,
+                              backgroundImage:
+                                  NetworkImage(user!.photoUrl),
+                            )
+                          else
+                            Container(
+                              width: 44.0,
+                              height: 44.0,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: LinearGradient(
+                                  colors: [
+                                    Color(0xFFFF643A),
+                                    Color(0xFFFF501F),
+                                    Color(0xFFDF3A2E),
+                                  ],
+                                  begin: AlignmentDirectional(-1.0, 0.0),
+                                  end: AlignmentDirectional(1.0, 0.0),
                                 ),
-                                if (sos.horario != null)
-                                  Text(
-                                    dateTimeFormat(
-                                      'HH:mm',
-                                      sos.horario,
-                                      locale:
-                                          FFLocalizations.of(context).languageCode,
+                              ),
+                              alignment: Alignment.center,
+                              child: Text(
+                                _buildInitialsFromName(name),
+                                style: FlutterFlowTheme.of(context)
+                                    .bodySmall
+                                    .override(
+                                      font: GoogleFonts.poppins(
+                                        fontWeight:
+                                            FlutterFlowTheme.of(context)
+                                                .bodySmall
+                                                .fontWeight,
+                                        fontStyle:
+                                            FlutterFlowTheme.of(context)
+                                                .bodySmall
+                                                .fontStyle,
+                                      ),
+                                      color: Colors.white,
+                                      letterSpacing: 0.0,
                                     ),
-                                    style: FlutterFlowTheme.of(context)
-                                        .bodySmall
-                                        .override(
-                                          font: GoogleFonts.poppins(
-                                            fontWeight: FontWeight.normal,
-                                            fontStyle: FontStyle.normal,
-                                          ),
-                                          fontSize: 12.0,
-                                          color: FlutterFlowTheme.of(context)
-                                              .secondaryText,
-                                          letterSpacing: 0.0,
-                                        ),
-                                  ),
-                              ],
+                              ),
                             ),
-                          ),
                         ],
                       ),
                     ),
@@ -397,11 +440,537 @@ class _AdminSosChatWidgetState extends State<AdminSosChatWidget> {
 
   Widget _buildMessagesArea(BuildContext context) {
     if (_selectedChat == null) {
+      return _buildGlobalHistoryList(context);
+    }
+
+    if (_selectedChat!.userDocument == null) {
+      return _buildChatDetailView(context);
+    }
+
+    if (_showingHistoryList) {
+      return _buildUserChatHistoryList(context, _selectedChat!.userDocument!);
+    }
+
+    return _buildChatDetailView(context);
+  }
+
+  Widget _buildGlobalHistoryList(BuildContext context) {
+    return StreamBuilder<List<ChatHistoryRecord>>(
+      stream: queryChatHistoryRecord(
+        queryBuilder: (history) => history
+            .where('rideSOS', isEqualTo: true)
+            .orderBy('horario', descending: true),
+      ),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return Center(
+            child: SizedBox(
+              width: 32.0,
+              height: 32.0,
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  FlutterFlowTheme.of(context).primary,
+                ),
+              ),
+            ),
+          );
+        }
+
+        final allMessages = snapshot.data!;
+        if (allMessages.isEmpty) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text(
+                'No active SOS messages',
+                style: FlutterFlowTheme.of(context).bodyMedium.override(
+                      font: GoogleFonts.poppins(
+                        fontWeight: FlutterFlowTheme.of(context)
+                            .bodyMedium
+                            .fontWeight,
+                        fontStyle: FlutterFlowTheme.of(context)
+                            .bodyMedium
+                            .fontStyle,
+                      ),
+                      color: Colors.white,
+                      letterSpacing: 0.0,
+                    ),
+              ),
+            ),
+          );
+        }
+
+        final Map<DocumentReference, ChatHistoryRecord> lastByUser = {};
+        for (final msg in allMessages) {
+          final userRef = msg.documentUser;
+          if (userRef == null) continue;
+          if (!lastByUser.containsKey(userRef)) {
+            lastByUser[userRef] = msg;
+          }
+        }
+
+        if (lastByUser.isEmpty) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text(
+                'No active SOS messages',
+                style: FlutterFlowTheme.of(context).bodyMedium.override(
+                      font: GoogleFonts.poppins(
+                        fontWeight: FlutterFlowTheme.of(context)
+                            .bodyMedium
+                            .fontWeight,
+                        fontStyle: FlutterFlowTheme.of(context)
+                            .bodyMedium
+                            .fontStyle,
+                      ),
+                      color: Colors.white,
+                      letterSpacing: 0.0,
+                    ),
+              ),
+            ),
+          );
+        }
+
+        final items = lastByUser.values.toList()
+          ..sort((a, b) {
+            final aTime =
+                a.horario ?? DateTime.fromMillisecondsSinceEpoch(0);
+            final bTime =
+                b.horario ?? DateTime.fromMillisecondsSinceEpoch(0);
+            return bTime.compareTo(aTime);
+          });
+
+        return ListView.separated(
+          padding: const EdgeInsets.fromLTRB(8.0, 12.0, 8.0, 8.0),
+          itemCount: items.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 4.0),
+          itemBuilder: (context, index) {
+            final msg = items[index];
+            final userRef = msg.documentUser;
+            final chatRef = msg.parentReference;
+
+            return FutureBuilder<UsersRecord>(
+              future: userRef != null
+                  ? UsersRecord.getDocumentOnce(userRef)
+                  : null,
+              builder: (context, userSnap) {
+                final user = userSnap.data;
+                final name = (user?.displayName.isNotEmpty ?? false)
+                    ? user!.displayName
+                    : 'User';
+                final lastMsg = msg.msg;
+
+                return InkWell(
+                  onTap: () {
+                    final chat = ChatRecord.getDocumentFromData(
+                      {
+                        if (userRef != null) 'userDocument': userRef,
+                        'rideSOS': true,
+                      },
+                      chatRef,
+                    );
+                    setState(() {
+                      _selectedChat = chat;
+                      _selectedSosChatRef = chatRef;
+                      _showingHistoryList = true;
+                      _selectedHistoryChat = null;
+                    });
+                  },
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 4.0,
+                      vertical: 4.0,
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8.0,
+                      vertical: 8.0,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.transparent,
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        if (user?.photoUrl.isNotEmpty ?? false)
+                          CircleAvatar(
+                            radius: 14.0,
+                            backgroundColor:
+                                FlutterFlowTheme.of(context).accent2,
+                            backgroundImage:
+                                NetworkImage(user!.photoUrl),
+                          )
+                        else
+                          Container(
+                            width: 28.0,
+                            height: 28.0,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: LinearGradient(
+                                colors: [
+                                  Color(0xFFFF643A),
+                                  Color(0xFFFF501F),
+                                  Color(0xFFDF3A2E),
+                                ],
+                                begin: AlignmentDirectional(-1.0, 0.0),
+                                end: AlignmentDirectional(1.0, 0.0),
+                              ),
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(
+                              _buildInitialsFromName(name),
+                              style: FlutterFlowTheme.of(context)
+                                  .bodySmall
+                                  .override(
+                                    font: GoogleFonts.poppins(
+                                      fontWeight: FlutterFlowTheme.of(context)
+                                          .bodySmall
+                                          .fontWeight,
+                                      fontStyle: FlutterFlowTheme.of(context)
+                                          .bodySmall
+                                          .fontStyle,
+                                    ),
+                                    color: Colors.white,
+                                    letterSpacing: 0.0,
+                                  ),
+                            ),
+                          ),
+                        const SizedBox(width: 8.0),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: FlutterFlowTheme.of(context)
+                                    .bodyMedium
+                                    .override(
+                                      font: GoogleFonts.poppins(
+                                        fontWeight: FontWeight.w600,
+                                        fontStyle: FontStyle.italic,
+                                      ),
+                                      fontSize: 14.0,
+                                      color: Colors.white,
+                                      letterSpacing: 0.0,
+                                      fontWeight: FontWeight.w600,
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                              ),
+                              if (lastMsg.isNotEmpty)
+                                Padding(
+                                  padding:
+                                      const EdgeInsets.only(top: 2.0),
+                                  child: Text(
+                                    lastMsg,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: FlutterFlowTheme.of(context)
+                                        .bodySmall
+                                        .override(
+                                          font: GoogleFonts.poppins(
+                                            fontWeight:
+                                                FlutterFlowTheme.of(context)
+                                                    .bodySmall
+                                                    .fontWeight,
+                                            fontStyle:
+                                                FlutterFlowTheme.of(context)
+                                                    .bodySmall
+                                                    .fontStyle,
+                                          ),
+                                          color:
+                                              FlutterFlowTheme.of(context)
+                                                  .secondaryText,
+                                          fontSize: 12.0,
+                                          letterSpacing: 0.0,
+                                        ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildUserChatHistoryList(
+      BuildContext context, DocumentReference userRef) {
+    return FutureBuilder<UsersRecord>(
+      future: UsersRecord.getDocumentOnce(userRef),
+      builder: (context, userSnap) {
+        final user = userSnap.data;
+        final displayName = (user?.displayName.isNotEmpty ?? false)
+            ? user!.displayName
+            : 'User';
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: StreamBuilder<List<ChatRecord>>(
+                stream: queryChatRecord(
+                  queryBuilder: (chat) =>
+                      chat.where('userDocument', isEqualTo: userRef),
+                ),
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          'Error loading history.',
+                          textAlign: TextAlign.center,
+                          style: FlutterFlowTheme.of(context)
+                              .bodySmall
+                              .override(
+                                font: GoogleFonts.poppins(
+                                  fontWeight: FlutterFlowTheme.of(context)
+                                      .bodySmall
+                                      .fontWeight,
+                                  fontStyle: FlutterFlowTheme.of(context)
+                                      .bodySmall
+                                      .fontStyle,
+                                ),
+                                letterSpacing: 0.0,
+                              ),
+                        ),
+                      ),
+                    );
+                  }
+
+                  if (!snapshot.hasData) {
+                    return Center(
+                      child: SizedBox(
+                        width: 32.0,
+                        height: 32.0,
+                        child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            FlutterFlowTheme.of(context).primary,
+                          ),
+                        ),
+                      ),
+                    );
+                  }
+
+                  final chats = snapshot.data!..sort((a, b) {
+                      final aTime =
+                          a.ultimaMsg ?? DateTime.fromMillisecondsSinceEpoch(0);
+                      final bTime =
+                          b.ultimaMsg ?? DateTime.fromMillisecondsSinceEpoch(0);
+                      return bTime.compareTo(aTime);
+                    });
+                  if (chats.isEmpty) {
+                    return Center(
+                      child: Text(
+                        'No chat history for this user.',
+                        style: FlutterFlowTheme.of(context)
+                            .bodySmall
+                            .override(
+                              font: GoogleFonts.poppins(
+                                fontWeight: FlutterFlowTheme.of(context)
+                                    .bodySmall
+                                    .fontWeight,
+                                fontStyle: FlutterFlowTheme.of(context)
+                                    .bodySmall
+                                    .fontStyle,
+                              ),
+                              letterSpacing: 0.0,
+                            ),
+                      ),
+                    );
+                  }
+
+                  return ListView.separated(
+                    padding: const EdgeInsets.fromLTRB(8.0, 0.0, 8.0, 8.0),
+                    itemCount: chats.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 4.0),
+                    itemBuilder: (context, index) {
+                      final chat = chats[index];
+                      final isSelectedHistory =
+                          _selectedHistoryChat != null &&
+                              _selectedHistoryChat!.reference.path ==
+                                  chat.reference.path;
+
+                      return StreamBuilder<List<ChatHistoryRecord>>(
+                        stream: queryChatHistoryRecord(
+                          parent: chat.reference,
+                          queryBuilder: (history) => history
+                              .orderBy('horario', descending: true),
+                          limit: 1,
+                          singleRecord: true,
+                        ),
+                        builder: (context, historySnap) {
+                          String lastMsg = '';
+                          if (historySnap.hasData &&
+                              historySnap.data!.isNotEmpty) {
+                            lastMsg = historySnap.data!.first.msg;
+                          }
+
+                          return InkWell(
+                            onTap: () {
+                              setState(() {
+                                _selectedChat = chat;
+                                _selectedHistoryChat = chat;
+                                _showingHistoryList = false;
+                              });
+                            },
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: isSelectedHistory
+                                    ? const Color(0xFF2E2E2E)
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(10.0),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8.0,
+                                vertical: 8.0,
+                              ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  if (user?.photoUrl.isNotEmpty ?? false)
+                                    CircleAvatar(
+                                      radius: 14.0,
+                                      backgroundColor:
+                                          FlutterFlowTheme.of(context)
+                                              .accent2,
+                                      backgroundImage:
+                                          NetworkImage(user!.photoUrl),
+                                    )
+                                  else
+                                    Container(
+                                      width: 28.0,
+                                      height: 28.0,
+                                      decoration: const BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        gradient: LinearGradient(
+                                          colors: [
+                                            Color(0xFFFF643A),
+                                            Color(0xFFFF501F),
+                                            Color(0xFFDF3A2E),
+                                          ],
+                                          begin:
+                                              AlignmentDirectional(-1.0, 0.0),
+                                          end: AlignmentDirectional(1.0, 0.0),
+                                        ),
+                                      ),
+                                      alignment: Alignment.center,
+                                      child: Text(
+                                        _buildInitialsFromName(displayName),
+                                        style: FlutterFlowTheme.of(context)
+                                            .bodySmall
+                                            .override(
+                                              font: GoogleFonts.poppins(
+                                                fontWeight:
+                                                    FlutterFlowTheme.of(
+                                                            context)
+                                                        .bodySmall
+                                                        .fontWeight,
+                                                fontStyle:
+                                                    FlutterFlowTheme.of(
+                                                            context)
+                                                        .bodySmall
+                                                        .fontStyle,
+                                              ),
+                                              color: Colors.white,
+                                              letterSpacing: 0.0,
+                                            ),
+                                      ),
+                                    ),
+                                  const SizedBox(width: 8.0),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          displayName,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: FlutterFlowTheme.of(context)
+                                              .bodyMedium
+                                              .override(
+                                                font: GoogleFonts.poppins(
+                                                  fontWeight: FontWeight.w600,
+                                                  fontStyle: FontStyle.italic,
+                                                ),
+                                                fontSize: 14.0,
+                                                color: Colors.white,
+                                                letterSpacing: 0.0,
+                                                fontWeight: FontWeight.w600,
+                                                fontStyle: FontStyle.italic,
+                                              ),
+                                        ),
+                                        if (lastMsg.isNotEmpty)
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                                top: 2.0),
+                                            child: Text(
+                                              lastMsg,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: FlutterFlowTheme.of(
+                                                      context)
+                                                  .bodySmall
+                                                  .override(
+                                                    font: GoogleFonts.poppins(
+                                                      fontWeight:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .bodySmall
+                                                              .fontWeight,
+                                                      fontStyle:
+                                                          FlutterFlowTheme.of(
+                                                                  context)
+                                                              .bodySmall
+                                                              .fontStyle,
+                                                    ),
+                                                    color:
+                                                        FlutterFlowTheme.of(
+                                                                context)
+                                                            .secondaryText,
+                                                    fontSize: 12.0,
+                                                    letterSpacing: 0.0,
+                                                  ),
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildChatDetailView(BuildContext context) {
+    if (_selectedChat == null) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Text(
-            'Selecione uma conversa SOS',
+            'No active SOS messages',
             style: FlutterFlowTheme.of(context).bodyMedium.override(
                   font: GoogleFonts.poppins(
                     fontWeight:
@@ -418,6 +987,113 @@ class _AdminSosChatWidgetState extends State<AdminSosChatWidget> {
 
     return Column(
       children: [
+        Container(
+          padding:
+              const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+          decoration: BoxDecoration(
+            color: const Color(0xFF242424),
+            border: Border(
+              bottom: BorderSide(
+                color: FlutterFlowTheme.of(context).alternate.withOpacity(0.3),
+                width: 0.5,
+              ),
+            ),
+          ),
+          child: Row(
+            children: [
+              IconButton(
+                icon: const Icon(
+                  Icons.arrow_back_rounded,
+                  color: Colors.white,
+                  size: 20.0,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _showingHistoryList = true;
+                  });
+                },
+              ),
+              const SizedBox(width: 4.0),
+              if (_selectedChat!.userDocument != null)
+                FutureBuilder<UsersRecord>(
+                  future: UsersRecord.getDocumentOnce(
+                      _selectedChat!.userDocument!),
+                  builder: (context, snap) {
+                    final user = snap.data;
+                    final name = (user?.displayName.isNotEmpty ?? false)
+                        ? user!.displayName
+                        : 'User';
+                    return Row(
+                      children: [
+                        if (user?.photoUrl.isNotEmpty ?? false)
+                          CircleAvatar(
+                            radius: 12.0,
+                            backgroundColor:
+                                FlutterFlowTheme.of(context).accent2,
+                            backgroundImage:
+                                NetworkImage(user!.photoUrl),
+                          )
+                        else
+                          Container(
+                            width: 24.0,
+                            height: 24.0,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: LinearGradient(
+                                colors: [
+                                  Color(0xFFFF643A),
+                                  Color(0xFFFF501F),
+                                  Color(0xFFDF3A2E),
+                                ],
+                                begin: AlignmentDirectional(-1.0, 0.0),
+                                end: AlignmentDirectional(1.0, 0.0),
+                              ),
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(
+                              _buildInitialsFromName(name),
+                              style: FlutterFlowTheme.of(context)
+                                  .bodySmall
+                                  .override(
+                                    font: GoogleFonts.poppins(
+                                      fontWeight: FlutterFlowTheme.of(context)
+                                          .bodySmall
+                                          .fontWeight,
+                                      fontStyle: FlutterFlowTheme.of(context)
+                                          .bodySmall
+                                          .fontStyle,
+                                    ),
+                                    color: Colors.white,
+                                    letterSpacing: 0.0,
+                                  ),
+                            ),
+                          ),
+                        const SizedBox(width: 8.0),
+                        Text(
+                          name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: FlutterFlowTheme.of(context)
+                              .bodyMedium
+                              .override(
+                                font: GoogleFonts.poppins(
+                                  fontWeight: FontWeight.w600,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                                fontSize: 14.0,
+                                color: Colors.white,
+                                letterSpacing: 0.0,
+                                fontWeight: FontWeight.w600,
+                                fontStyle: FontStyle.italic,
+                              ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+            ],
+          ),
+        ),
         Expanded(
           child: StreamBuilder<List<ChatHistoryRecord>>(
             stream: queryChatHistoryRecord(
@@ -444,7 +1120,7 @@ class _AdminSosChatWidgetState extends State<AdminSosChatWidget> {
               if (messages.isEmpty) {
                 return Center(
                   child: Text(
-                    'Sem mensagens nesta conversa.',
+                    'No messages in this conversation.',
                     style: FlutterFlowTheme.of(context).bodySmall.override(
                           font: GoogleFonts.poppins(
                             fontWeight:
@@ -452,6 +1128,7 @@ class _AdminSosChatWidgetState extends State<AdminSosChatWidget> {
                             fontStyle:
                                 FlutterFlowTheme.of(context).bodySmall.fontStyle,
                           ),
+                          color: Colors.white,
                           letterSpacing: 0.0,
                         ),
                   ),
@@ -475,9 +1152,72 @@ class _AdminSosChatWidgetState extends State<AdminSosChatWidget> {
                 itemCount: messages.length,
                 itemBuilder: (context, index) {
                   final msg = messages[index];
+                  final isSystem = msg.msgdosystema;
                   final isMine =
                       msg.documentUser != null &&
                       msg.documentUser == currentUserReference;
+
+                  final displayText = _formatMessageText(msg.msg);
+
+                  if (isSystem) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 4.0,
+                        horizontal: 8.0,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text(
+                            displayText,
+                            textAlign: TextAlign.center,
+                            style: FlutterFlowTheme.of(context)
+                                .bodySmall
+                                .override(
+                                  font: GoogleFonts.poppins(
+                                    fontWeight: FlutterFlowTheme.of(context)
+                                        .bodySmall
+                                        .fontWeight,
+                                    fontStyle: FlutterFlowTheme.of(context)
+                                        .bodySmall
+                                        .fontStyle,
+                                  ),
+                                  color:
+                                      FlutterFlowTheme.of(context).secondaryText,
+                                  letterSpacing: 0.0,
+                                ),
+                          ),
+                          const SizedBox(height: 2.0),
+                          if (msg.horario != null)
+                            Text(
+                              dateTimeFormat(
+                                'HH:mm',
+                                msg.horario,
+                                locale:
+                                    FFLocalizations.of(context).languageCode,
+                              ),
+                              style: FlutterFlowTheme.of(context)
+                                  .bodySmall
+                                  .override(
+                                    font: GoogleFonts.poppins(
+                                      fontWeight: FlutterFlowTheme.of(context)
+                                          .bodySmall
+                                          .fontWeight,
+                                      fontStyle: FlutterFlowTheme.of(context)
+                                          .bodySmall
+                                          .fontStyle,
+                                    ),
+                                    color: FlutterFlowTheme.of(context)
+                                        .secondaryText
+                                        .withOpacity(0.8),
+                                    fontSize: 10.0,
+                                    letterSpacing: 0.0,
+                                  ),
+                            ),
+                        ],
+                      ),
+                    );
+                  }
 
                   return Align(
                     alignment: isMine
@@ -496,17 +1236,26 @@ class _AdminSosChatWidgetState extends State<AdminSosChatWidget> {
                         maxWidth: MediaQuery.sizeOf(context).width * 0.28,
                       ),
                       decoration: BoxDecoration(
-                        color: isMine
-                            ? const Color(0xFFF5F5F5)
-                            : FlutterFlowTheme.of(context).accent2,
+                        color: isMine ? const Color(0xFFF5F5F5) : null,
+                        gradient: isMine
+                            ? null
+                            : const LinearGradient(
+                                colors: [
+                                  Color(0xFFFF643A),
+                                  Color(0xFFFF501F),
+                                  Color(0xFFDF3A2E),
+                                ],
+                                begin: AlignmentDirectional(-1.0, 0.0),
+                                end: AlignmentDirectional(1.0, 0.0),
+                              ),
                         borderRadius: BorderRadius.circular(14.0),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (msg.msg.isNotEmpty)
+                          if (displayText.isNotEmpty)
                             Text(
-                              msg.msg,
+                              displayText,
                               style: FlutterFlowTheme.of(context)
                                   .bodyMedium
                                   .override(
@@ -573,7 +1322,7 @@ class _AdminSosChatWidgetState extends State<AdminSosChatWidget> {
               minLines: 1,
               maxLines: 4,
               decoration: InputDecoration(
-                hintText: 'Escrever mensagem...',
+                hintText: 'Write a message...',
                 hintStyle: FlutterFlowTheme.of(context).bodySmall.override(
                       font: GoogleFonts.poppins(
                         fontWeight:
@@ -626,7 +1375,7 @@ class _AdminSosChatWidgetState extends State<AdminSosChatWidget> {
             onPressed: _onSendPressed,
             icon: Icon(
               Icons.send_rounded,
-              color: FlutterFlowTheme.of(context).accent2,
+              color: Color(0xFFFF643A),
             ),
           ),
         ],
