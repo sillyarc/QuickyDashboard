@@ -1,20 +1,38 @@
-# Quicky DashboardAdmin
+# Quicky Dashboard (Next.js)
 
-A new Flutter project.
+Este repositório foi migrado de Flutter para Next.js. O projeto Flutter original foi preservado em `flutter_legacy/`.
 
-## Getting Started
+## Requisitos
 
-FlutterFlow projects are built to run on the Flutter _stable_ release.
+- Node.js 18+ (recomendado 20+)
+- npm (ou pnpm/yarn/bun)
 
-## Deploy web (quicky-dashboard)
-
-Para gerar o build web e fazer deploy no Firebase Hosting do site `quicky-dashboard`, rode (no diretório raiz do projeto):
+## Como rodar
 
 ```bash
-deploy_quicky_dashboard.bat
+npm install
+npm run dev
 ```
 
-O script faz:
-- `flutter build web --release`
-- copia `build/web` para `firebase/public`
-- `firebase deploy --only hosting:quicky-dashboard --project quick-b108e --config firebase.json`
+Acesse `http://localhost:3000`.
+
+## Estrutura
+
+- `src/app/` -> rotas e páginas (App Router)
+- `public/` -> arquivos estáticos
+- `public/flutter_assets/` -> assets migrados do Flutter
+- `flutter_legacy/` -> projeto Flutter original (somente referência)
+
+## Rotas principais (quicky_dashboard)
+
+- `/quickysolutionsllcdashboard`
+- `/dashboardQuickyTasks`
+- `/dashboardQuickyTasksCopyCopy`
+- `/alluserapage`
+- `/taskspreprontas`
+- `/createPreTasks`
+- `/createPreTasksCopy`
+- `/edittask`
+- `/events`
+- `/appAnalystics`
+- `/quickyTestRealTime`
