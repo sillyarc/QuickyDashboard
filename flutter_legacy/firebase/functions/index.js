@@ -229,6 +229,73 @@ function getCharForIndex(charIdx) {
     return String.fromCharCode("a".charCodeAt(0) + charIdx - 36);
   }
 }
+
+function normalizePhoneNumber(value) {
+  if (typeof value !== "string") return "";
+  return value.replace(/[^\d+]/g, "").trim();
+}
+
+function isValidUserPath(value) {
+  return typeof value === "string" && /^users\/[^/]+$/.test(value);
+}
+
+exports.upsertEmergencyPhones = functions.https.onCall(async (data, context) => {
+  if (!context.auth) {
+    throw new functions.https.HttpsError(
+      "unauthenticated",
+      "Authentication required."
+    );
+  }
+
+  const isPrivilegedUser =
+    context.auth.token.admin === true || context.auth.token.support === true;
+
+  const driverUserPath = data?.driverUserPath;
+  const riderUserPath = data?.riderUserPath;
+  const driverPhoneNumber = normalizePhoneNumber(data?.driverPhoneNumber || "");
+  const riderPhoneNumber = normalizePhoneNumber(data?.riderPhoneNumber || "");
+
+  const updates = [];
+  const updated = [];
+
+  const addUpdate = (userPath, phoneNumber) => {
+    if (!isValidUserPath(userPath) || !phoneNumber) return;
+
+    const uid = userPath.split("/")[1];
+    if (!isPrivilegedUser && context.auth.uid !== uid) {
+      throw new functions.https.HttpsError(
+        "permission-denied",
+        "Insufficient permission to update this user."
+      );
+    }
+
+    updates.push(
+      firestore.doc(userPath).set(
+        {
+          phone_number: phoneNumber,
+          phoneNumber: phoneNumber,
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        },
+        { merge: true }
+      )
+    );
+    updated.push(userPath);
+  };
+
+  addUpdate(driverUserPath, driverPhoneNumber);
+  addUpdate(riderUserPath, riderPhoneNumber);
+
+  if (!updates.length) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "Provide at least one valid user path and phone number."
+    );
+  }
+
+  await Promise.all(updates);
+  return { updated };
+});
+
 exports.onUserDeleted = functions.auth.user().onDelete(async (user) => {
   let firestore = admin.firestore();
   let userRef = firestore.doc("users/" + user.uid);
