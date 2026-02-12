@@ -1,5 +1,7 @@
 import Link from "next/link";
 import SosEmergencyCard from "@/components/SosEmergencyCard";
+import InteractiveSalesMap from "@/components/dashboard/InteractiveSalesMap";
+import InteractiveVisitorsChart from "@/components/dashboard/InteractiveVisitorsChart";
 
 const kpiCards = [
   {
@@ -162,6 +164,13 @@ export default function QuickySolutionsDashboardPage() {
           </div>
 
           <div className="grid gap-6 lg:grid-cols-[1.2fr_0.9fr]">
+            <div className="lg:col-span-2">
+              <div className="grid gap-6 xl:grid-cols-[1.45fr_1fr]">
+                <InteractiveVisitorsChart />
+                <InteractiveSalesMap />
+              </div>
+            </div>
+
             <div className="grid gap-6 md:grid-cols-2">
               <div className="rounded-2xl border border-white/10 bg-[#2a2a2a] p-4">
                 <div className="flex items-start justify-between">
