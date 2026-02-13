@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, Poppins } from "next/font/google";
+import "leaflet/dist/leaflet.css";
 import "./globals.css";
 
 const poppins = Poppins({

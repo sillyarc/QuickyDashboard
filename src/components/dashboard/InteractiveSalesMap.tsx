@@ -704,23 +704,39 @@ export default function InteractiveSalesMap() {
   ]);
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-[#1e1e1e] p-4">
+    <div className="rounded-2xl border border-white/10 bg-[#151515] p-4 shadow-[0_18px_45px_-26px_rgba(0,0,0,0.95)]">
       <div className="flex items-center justify-between gap-3">
-        <p className="text-sm font-semibold text-white">Sale Map</p>
-        <span className="rounded-full border border-white/10 bg-[#111111] px-3 py-1 text-[11px] text-white/85">
+        <p className="text-sm font-semibold text-white">Global Map</p>
+        <span className="rounded-full border border-white/10 bg-[#0f0f0f] px-3 py-1 text-[11px] text-white/85">
           {activePin.region} - {activePin.label}
         </span>
       </div>
 
       <div
         ref={mapSurfaceRef}
-        className="relative mt-3 h-[260px] touch-none overscroll-contain overflow-hidden rounded-xl border border-white/10 bg-[#131313]"
+        className="relative mt-3 h-[260px] touch-none overscroll-contain overflow-hidden rounded-xl border border-white/10 bg-[#0d0d0d]"
         onWheel={handleWheel}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
       >
+        <div
+          className="pointer-events-none absolute inset-0 z-0"
+          style={{
+            background:
+              "radial-gradient(circle at 18% 22%, rgba(255,255,255,0.08), transparent 38%), radial-gradient(circle at 79% 14%, rgba(255,177,37,0.12), transparent 30%), linear-gradient(180deg, #131313 0%, #090909 100%)",
+          }}
+        />
+        <div
+          className="pointer-events-none absolute inset-0 z-[1] opacity-60"
+          style={{
+            backgroundImage:
+              "linear-gradient(115deg, rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(25deg, rgba(255,255,255,0.03) 1px, transparent 1px)",
+            backgroundSize: "42px 42px, 56px 56px",
+          }}
+        />
+
         {isLoading && (
           <div className="absolute inset-0 z-20 grid place-items-center bg-[#101010]/80 text-xs text-white/80">
             Carregando mapa...
@@ -729,19 +745,48 @@ export default function InteractiveSalesMap() {
 
         <svg
           viewBox={`0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`}
-          className="h-full w-full"
+          className="relative z-10 h-full w-full"
           preserveAspectRatio="none"
           aria-label="Mapa interativo de vendas"
           role="img"
         >
           <g transform={`matrix(${camera.zoom} 0 0 ${camera.zoom} ${camera.tx} ${camera.ty})`}>
+            <path
+              d="M35 78 L230 128 L385 112 L515 188 L690 173 L890 214"
+              fill="none"
+              stroke="rgba(255,255,255,0.12)"
+              strokeWidth={1.2}
+              strokeLinecap="round"
+            />
+            <path
+              d="M78 325 L280 280 L460 312 L640 295 L815 328 L972 286"
+              fill="none"
+              stroke="rgba(255,255,255,0.11)"
+              strokeWidth={1.35}
+              strokeLinecap="round"
+            />
+            <path
+              d="M210 12 L185 94 L246 194 L235 292 L282 418"
+              fill="none"
+              stroke="rgba(255,255,255,0.08)"
+              strokeWidth={1.15}
+              strokeLinecap="round"
+            />
+            <path
+              d="M760 0 L731 82 L778 176 L746 270 L807 364 L772 448"
+              fill="none"
+              stroke="rgba(255,255,255,0.1)"
+              strokeWidth={1.15}
+              strokeLinecap="round"
+            />
+
             {continentFeatures.map((feature) => (
               <path
                 key={`continent-${feature.key}`}
                 d={feature.path}
-                fill="#363636"
-                stroke="rgba(255,255,255,0.5)"
-                strokeWidth={0.17}
+                fill="#202020"
+                stroke="rgba(255,255,255,0.3)"
+                strokeWidth={0.13}
               />
             ))}
 
@@ -750,8 +795,8 @@ export default function InteractiveSalesMap() {
                 key={`country-${feature.key}`}
                 d={feature.path}
                 fill="transparent"
-                stroke="rgba(255,255,255,0.75)"
-                strokeWidth={0.065}
+                stroke="rgba(255,255,255,0.42)"
+                strokeWidth={0.055}
               />
             ))}
 
@@ -760,8 +805,8 @@ export default function InteractiveSalesMap() {
                 key={`state-${feature.key}`}
                 d={feature.path}
                 fill="transparent"
-                stroke="rgba(255,255,255,0.52)"
-                strokeWidth={0.045}
+                stroke="rgba(255,255,255,0.28)"
+                strokeWidth={0.04}
               />
             ))}
 
@@ -817,7 +862,7 @@ export default function InteractiveSalesMap() {
                     y={8.35}
                     fontSize={5.6}
                     fontWeight={700}
-                    fill="white"
+                    fill="#ffffff"
                   >
                     {pin.label}
                   </text>
@@ -870,7 +915,7 @@ export default function InteractiveSalesMap() {
         </div>
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-white/10 bg-[#141414] px-3 py-2 text-[11px] text-white/80">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-white/10 bg-[#111111] px-3 py-2 text-[11px] text-white/80">
         <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
           {(Object.keys(SALE_TYPE_META) as SaleType[]).map((type) => {
             const meta = SALE_TYPE_META[type];

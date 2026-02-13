@@ -54,6 +54,7 @@ const topNavLinks = [
     label: "Flow Builder, Campaigns & Rewards",
     href: "/flow-builder-campaigns-rewards",
   },
+  { label: "map", href: "/map" },
 ];
 
 const internalActionRoutes = {
@@ -83,7 +84,23 @@ const buildChatRoute = (name: string, role: string) =>
     role
   )}`;
 
+const getFirstName = (fullName: string) => fullName.trim().split(/\s+/)[0] ?? fullName;
+
 export default function QuickySolutionsDashboardPage() {
+  const rider = {
+    name: "Enzo Godoy",
+    role: "Rider",
+    phone: "+13058500987",
+  };
+  const driver = {
+    name: "Sam Miller",
+    role: "Taxi Driver",
+    phone: "+13055550199",
+  };
+
+  const riderFirstName = getFirstName(rider.name);
+  const driverFirstName = getFirstName(driver.name);
+
   return (
     <div className="min-h-screen px-6 py-8 lg:px-10">
       <header className="flex flex-wrap items-center justify-between gap-6 rounded-2xl border border-white/10 bg-[#2b2b2b]/80 p-4 shadow-[0_16px_40px_-24px_rgba(0,0,0,0.8)]">
@@ -182,7 +199,7 @@ export default function QuickySolutionsDashboardPage() {
                     />
                     <div>
                       <p className="text-sm font-semibold text-white">
-                        Enzo Godoy
+                        {rider.name}
                       </p>
                       <p className="text-xs text-[var(--text-muted)]">
                         Rider Rating:
@@ -202,16 +219,16 @@ export default function QuickySolutionsDashboardPage() {
                 </div>
                 <div className="mt-4 flex flex-wrap gap-2">
                   <Link
-                    href={buildChatRoute("Enzo Godoy", "Rider")}
+                    href={buildChatRoute(rider.name, rider.role)}
                     className="rounded-full bg-[#1f1f1f] px-3 py-1 text-[10px] text-[var(--text-soft)] transition hover:bg-[#2b2b2b]"
                   >
-                    Text Sam
+                    Text {riderFirstName}
                   </Link>
                   <a
-                    href="tel:+13058500987"
+                    href={`tel:${rider.phone}`}
                     className="rounded-full bg-[#1f1f1f] px-3 py-1 text-[10px] text-[var(--text-soft)] transition hover:bg-[#2b2b2b]"
                   >
-                    Call Sam
+                    Call {riderFirstName}
                   </a>
                 </div>
               </div>
@@ -226,7 +243,7 @@ export default function QuickySolutionsDashboardPage() {
                     />
                     <div>
                       <p className="text-sm font-semibold text-white">
-                        Sam Miller - Taxi Driver
+                        {driver.name} - {driver.role}
                       </p>
                       <p className="text-xs text-[var(--text-muted)]">
                         Driver Rating:
@@ -244,16 +261,16 @@ export default function QuickySolutionsDashboardPage() {
                 </div>
                 <div className="mt-4 flex flex-wrap gap-2">
                   <Link
-                    href={buildChatRoute("Sam Miller", "Taxi Driver")}
+                    href={buildChatRoute(driver.name, driver.role)}
                     className="rounded-full bg-[#1f1f1f] px-3 py-1 text-[10px] text-[var(--text-soft)] transition hover:bg-[#2b2b2b]"
                   >
-                    Text Sam
+                    Text {driverFirstName}
                   </Link>
                   <a
-                    href="tel:+13055550199"
+                    href={`tel:${driver.phone}`}
                     className="rounded-full bg-[#1f1f1f] px-3 py-1 text-[10px] text-[var(--text-soft)] transition hover:bg-[#2b2b2b]"
                   >
-                    Call Sam
+                    Call {driverFirstName}
                   </a>
                 </div>
               </div>

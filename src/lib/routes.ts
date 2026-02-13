@@ -72,5 +72,10 @@ export const quickyDashboardRoutes: NavRoute[] = [
     label: "Tempo Real",
     description: "Monitoramento em tempo real.",
   },
+  {
+    key: "map",
+    path: "/map",
+    label: "Mapa Global",
+    description: "Visao global com usuarios, motoristas e alertas.",
+  },
 ];
-
