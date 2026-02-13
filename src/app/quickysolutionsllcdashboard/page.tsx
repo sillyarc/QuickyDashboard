@@ -54,17 +54,18 @@ const topNavLinks = [
     label: "Flow Builder, Campaigns & Rewards",
     href: "/flow-builder-campaigns-rewards",
   },
+  { label: "Users", href: "/users" },
   { label: "map", href: "/map" },
 ];
 
 const internalActionRoutes = {
-  askDrivers: "/alluserapage",
+  askDrivers: "/users",
   userLocation: "/quickyTestRealTime",
   resolveDispute: "/edittask",
   refundRider: "/edittask",
   escalateDispute: "/edittask",
   addEmployee: "/createPreTasks",
-  payrollEmployees: "/alluserapage",
+  payrollEmployees: "/users",
   newExpense: "/dashboardQuickyTasks",
   addExpense: "/dashboardQuickyTasks",
   setRecurring: "/dashboardQuickyTasksCopyCopy",

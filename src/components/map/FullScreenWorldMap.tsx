@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { getFirebaseDb } from "@/lib/firebase/client";
+import { ensureFirebaseAuthSession, getFirebaseDb } from "@/lib/firebase/client";
 import { divIcon } from "leaflet";
 import { useMemo, useState } from "react";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
@@ -48,6 +48,7 @@ const topNavLinks = [
   { label: "Disputes & Expense", href: "/disputes-expense" },
   { label: "Dispute Resolution", href: "/edittask" },
   { label: "Flow Builder, Campaigns & Rewards", href: "/flow-builder-campaigns-rewards" },
+  { label: "Users", href: "/users" },
   { label: "map", href: "/map" },
 ];
 
@@ -199,49 +200,6 @@ function PopupReset({ onReset }: { onReset: () => void }) {
   return null;
 }
 
-function DashboardGlyph() {
-  return (
-    <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" aria-hidden="true">
-      <rect x="2" y="2" width="6" height="6" rx="1.3" fill="#ffffff" />
-      <rect x="12" y="2" width="6" height="3.5" rx="1.1" fill="#ffffff" />
-      <rect x="12" y="8.5" width="6" height="9.5" rx="1.1" fill="#ffffff" />
-      <rect x="2" y="11" width="6" height="7" rx="1.3" fill="#ffffff" />
-    </svg>
-  );
-}
-
-function UserGlyph() {
-  return (
-    <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" aria-hidden="true">
-      <circle cx="10" cy="6.2" r="3.2" fill="#1f1f1f" />
-      <path d="M3.8 17.2c.9-3.1 3.2-4.6 6.2-4.6 2.9 0 5.2 1.5 6.2 4.6" fill="#1f1f1f" />
-    </svg>
-  );
-}
-
-function CarGlyph() {
-  return (
-    <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" aria-hidden="true">
-      <path
-        d="M4.3 7.6 6.3 4h7.4l2 3.6 1.3 1v4.6h-1.8a1.8 1.8 0 0 1-3.6 0H8.4a1.8 1.8 0 0 1-3.6 0H3V8.6l1.3-1Z"
-        fill="#1f1f1f"
-      />
-    </svg>
-  );
-}
-
-function BellGlyph() {
-  return (
-    <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" aria-hidden="true">
-      <path
-        d="M10 3.2a3.6 3.6 0 0 0-3.6 3.6v2.3l-1.2 2v1.2h9.6v-1.2l-1.2-2V6.8A3.6 3.6 0 0 0 10 3.2Z"
-        fill="#ffffff"
-      />
-      <circle cx="10" cy="14.8" r="1.4" fill="#ffffff" />
-    </svg>
-  );
-}
-
 type MapActionCallback = (
   marker: WorldMarker,
   action: string,
@@ -258,7 +216,7 @@ const renderPopupContent = (marker: WorldMarker, onAction: MapActionCallback) =>
     const contactFirstName = firstName(contactName);
 
     return (
-      <article className="w-[300px] rounded-[18px] border border-[#cbcbcb] bg-[#f3f3f3] p-4 text-[#161616] shadow-[0_20px_36px_-20px_rgba(0,0,0,0.8)]">
+      <article className="w-[300px] rounded-[18px] border border-white/10 bg-[#252525]/95 p-4 text-white shadow-[0_20px_36px_-20px_rgba(0,0,0,0.85)] backdrop-blur-sm">
         <div className="flex items-start justify-between gap-2">
           <div>
             <p className="text-[36px] font-semibold italic leading-none">{marker.name}</p>
@@ -270,13 +228,13 @@ const renderPopupContent = (marker: WorldMarker, onAction: MapActionCallback) =>
         </div>
         <div className="mt-1 flex items-center gap-1">{ratingStars(marker.rating ?? 4)}</div>
         <div className="mt-2 space-y-1 text-[14px] font-semibold italic">
-          <p className="rounded-full bg-[#f4a20f] px-3 py-1">
+          <p className="rounded-full border border-white/10 bg-[#1b1b1b] px-3 py-1 text-[#d2d2d2]">
             Where From {marker.location ?? "Unknown"}
           </p>
-          <p className="rounded-full bg-[#f4a20f] px-3 py-1">
+          <p className="rounded-full border border-white/10 bg-[#1b1b1b] px-3 py-1 text-[#d2d2d2]">
             # of Rides: {marker.rides ?? "-"} Passport #: {marker.passport ?? "-"}
           </p>
-          <p className="rounded-full bg-[#f4a20f] px-3 py-1">
+          <p className="rounded-full border border-white/10 bg-[#1b1b1b] px-3 py-1 text-[#d2d2d2]">
             Age: {marker.age ?? "-"} Gender: {marker.gender ?? "-"}
           </p>
         </div>
@@ -290,7 +248,7 @@ const renderPopupContent = (marker: WorldMarker, onAction: MapActionCallback) =>
                 contactPhone,
               })
             }
-            className="rounded-full bg-[#1e1e1e] px-5 py-2 text-white"
+            className="rounded-full bg-[#1b1b1b] px-5 py-2 text-white transition hover:bg-[#2a2a2a]"
           >
             Text {contactFirstName}
           </Link>
@@ -303,7 +261,7 @@ const renderPopupContent = (marker: WorldMarker, onAction: MapActionCallback) =>
                 contactPhone,
               })
             }
-            className="rounded-full bg-[#f4a20f] px-5 py-2 text-black"
+            className="rounded-full bg-gradient-to-r from-[#ea9804] to-[#fbb125] px-5 py-2 text-black"
           >
             Call {contactFirstName}
           </a>
@@ -315,7 +273,7 @@ const renderPopupContent = (marker: WorldMarker, onAction: MapActionCallback) =>
   if (marker.kind === "driver") {
     const driverFirstName = firstName(marker.name);
     return (
-      <article className="w-[320px] rounded-[18px] border border-[#cbcbcb] bg-[#f3f3f3] p-4 text-[#161616] shadow-[0_20px_36px_-20px_rgba(0,0,0,0.8)]">
+      <article className="w-[320px] rounded-[18px] border border-white/10 bg-[#252525]/95 p-4 text-white shadow-[0_20px_36px_-20px_rgba(0,0,0,0.85)] backdrop-blur-sm">
         <div className="flex items-start justify-between gap-2">
           <p className="text-[34px] font-semibold italic leading-none">
             {marker.name} - {marker.role}
@@ -327,10 +285,10 @@ const renderPopupContent = (marker: WorldMarker, onAction: MapActionCallback) =>
         <p className="mt-2 text-[42px] font-semibold leading-none">Driver Rating:</p>
         <div className="mt-1 flex items-center gap-1">{ratingStars(marker.rating ?? 4)}</div>
         <div className="mt-2 space-y-1 text-[14px] font-semibold italic">
-          <p className="rounded-full bg-[#f4a20f] px-3 py-1">
+          <p className="rounded-full border border-white/10 bg-[#1b1b1b] px-3 py-1 text-[#d2d2d2]">
             Car Driving: {marker.vehicle ?? "Not informed"}
           </p>
-          <p className="rounded-full bg-[#f4a20f] px-3 py-1">
+          <p className="rounded-full border border-white/10 bg-[#1b1b1b] px-3 py-1 text-[#d2d2d2]">
             Rides this month: {marker.ridesMonth ?? "-"} Total: {marker.ridesTotal ?? "-"}
           </p>
         </div>
@@ -347,7 +305,7 @@ const renderPopupContent = (marker: WorldMarker, onAction: MapActionCallback) =>
                 driverPhone: marker.phone ?? null,
               })
             }
-            className="rounded-full bg-[#1e1e1e] px-5 py-2 text-white"
+            className="rounded-full bg-[#1b1b1b] px-5 py-2 text-white transition hover:bg-[#2a2a2a]"
           >
             Text {driverFirstName}
           </Link>
@@ -360,7 +318,7 @@ const renderPopupContent = (marker: WorldMarker, onAction: MapActionCallback) =>
                 driverPhone: marker.phone ?? null,
               })
             }
-            className="rounded-full bg-[#f4a20f] px-5 py-2 text-black"
+            className="rounded-full bg-gradient-to-r from-[#ea9804] to-[#fbb125] px-5 py-2 text-black"
           >
             Call {driverFirstName}
           </a>
@@ -372,20 +330,24 @@ const renderPopupContent = (marker: WorldMarker, onAction: MapActionCallback) =>
   if (marker.kind === "sos_passenger") {
     const userLocationHref = `https://www.google.com/maps?q=${marker.lat},${marker.lng}`;
     return (
-      <article className="w-[338px] rounded-[18px] border border-[#ff7f7a] bg-[#f03830] p-4 text-white shadow-[0_18px_34px_-20px_rgba(0,0,0,0.9)]">
+      <article className="w-[338px] rounded-[18px] border border-[#9f2f2f] bg-[#3d1414]/95 p-4 text-white shadow-[0_18px_34px_-20px_rgba(0,0,0,0.9)] backdrop-blur-sm">
         <div className="flex items-start justify-between">
           <p className="text-[35px] font-semibold italic leading-none">
             {marker.name} - {marker.role}
           </p>
           <span className="rounded-full bg-white/20 px-2 py-1 text-[11px] font-bold">SOS</span>
         </div>
-        <div className="mt-2 space-y-1 text-[12px] text-[#2a2a2a]">
-          <p className="rounded-md bg-[#f3f3f3] px-2 py-0.5">Gender: {marker.gender ?? "-"}</p>
-          <p className="rounded-md bg-[#f3f3f3] px-2 py-0.5">Front: {marker.location ?? "-"}</p>
-          <p className="rounded-md bg-[#f3f3f3] px-2 py-0.5">
+        <div className="mt-2 space-y-1 text-[12px] text-[#f4dada]">
+          <p className="rounded-md border border-white/15 bg-[#511b1b] px-2 py-0.5">
+            Gender: {marker.gender ?? "-"}
+          </p>
+          <p className="rounded-md border border-white/15 bg-[#511b1b] px-2 py-0.5">
+            Front: {marker.location ?? "-"}
+          </p>
+          <p className="rounded-md border border-white/15 bg-[#511b1b] px-2 py-0.5">
             Ethnicity: {marker.ethnicity ?? "-"}
           </p>
-          <p className="rounded-md bg-[#f3f3f3] px-2 py-0.5">
+          <p className="rounded-md border border-white/15 bg-[#511b1b] px-2 py-0.5">
             Emergency contact: {marker.emergencyContact ?? "-"}
           </p>
         </div>
@@ -393,7 +355,7 @@ const renderPopupContent = (marker: WorldMarker, onAction: MapActionCallback) =>
           <button
             type="button"
             onClick={() => onAction(marker, "sos_call_emergency")}
-            className="rounded-full bg-white px-3 py-1 text-[#101010]"
+            className="rounded-full bg-gradient-to-r from-[#ea9804] to-[#fbb125] px-3 py-1 text-[#101010]"
           >
             CALL 911 or 919
           </button>
@@ -402,7 +364,7 @@ const renderPopupContent = (marker: WorldMarker, onAction: MapActionCallback) =>
             onClick={() =>
               onAction(marker, "view_passport", { passport: marker.passport ?? null })
             }
-            className="rounded-full bg-white px-3 py-1 text-[#101010]"
+            className="rounded-full border border-white/15 bg-[#551f1f] px-3 py-1 text-white"
           >
             Passport #: {marker.passport ?? "-"}
           </button>
@@ -411,14 +373,14 @@ const renderPopupContent = (marker: WorldMarker, onAction: MapActionCallback) =>
           <button
             type="button"
             onClick={() => onAction(marker, "sos_call_driver")}
-            className="rounded-full bg-[#1e1e1e] px-3 py-1"
+            className="rounded-full border border-white/10 bg-[#1b1b1b] px-3 py-1"
           >
             Call Driver
           </button>
           <button
             type="button"
             onClick={() => onAction(marker, "sos_ask_free_drivers_for_help")}
-            className="rounded-full bg-[#1e1e1e] px-3 py-1"
+            className="rounded-full border border-white/10 bg-[#1b1b1b] px-3 py-1"
           >
             Ask free drivers for help
           </button>
@@ -427,7 +389,7 @@ const renderPopupContent = (marker: WorldMarker, onAction: MapActionCallback) =>
             target="_blank"
             rel="noreferrer"
             onClick={() => onAction(marker, "sos_open_user_location", { userLocationHref })}
-            className="rounded-full bg-[#1e1e1e] px-3 py-1"
+            className="rounded-full border border-white/10 bg-[#1b1b1b] px-3 py-1"
           >
             User Location
           </a>
@@ -437,7 +399,7 @@ const renderPopupContent = (marker: WorldMarker, onAction: MapActionCallback) =>
   }
 
   return (
-    <article className="w-[302px] rounded-[18px] border border-[#ff7f7a] bg-[#f03830] p-4 text-white shadow-[0_18px_34px_-20px_rgba(0,0,0,0.9)]">
+    <article className="w-[302px] rounded-[18px] border border-[#9f2f2f] bg-[#3d1414]/95 p-4 text-white shadow-[0_18px_34px_-20px_rgba(0,0,0,0.9)] backdrop-blur-sm">
       <div className="flex items-start justify-between gap-2">
         <p className="text-[35px] font-semibold italic leading-none">
           {marker.name} - {marker.role}
@@ -453,14 +415,14 @@ const renderPopupContent = (marker: WorldMarker, onAction: MapActionCallback) =>
         <button
           type="button"
           onClick={() => onAction(marker, "threat_call_emergency")}
-          className="rounded-full bg-white px-3 py-1 text-[#101010]"
+          className="rounded-full bg-gradient-to-r from-[#ea9804] to-[#fbb125] px-3 py-1 text-[#101010]"
         >
           CALL 911 or 919
         </button>
         <button
           type="button"
           onClick={() => onAction(marker, "threat_view_plate", { plate: marker.plate ?? null })}
-          className="rounded-full bg-white px-3 py-1 text-[#101010]"
+          className="rounded-full border border-white/15 bg-[#551f1f] px-3 py-1 text-white"
         >
           Car Plate {marker.plate ?? "-"}
         </button>
@@ -469,14 +431,14 @@ const renderPopupContent = (marker: WorldMarker, onAction: MapActionCallback) =>
         <button
           type="button"
           onClick={() => onAction(marker, "threat_call_driver")}
-          className="rounded-full bg-[#1e1e1e] px-3 py-1"
+          className="rounded-full border border-white/10 bg-[#1b1b1b] px-3 py-1"
         >
           Call Driver
         </button>
         <button
           type="button"
           onClick={() => onAction(marker, "threat_ask_free_drivers_for_help")}
-          className="rounded-full bg-[#1e1e1e] px-3 py-1"
+          className="rounded-full border border-white/10 bg-[#1b1b1b] px-3 py-1"
         >
           Ask free drivers for help
         </button>
@@ -485,7 +447,7 @@ const renderPopupContent = (marker: WorldMarker, onAction: MapActionCallback) =>
           target="_blank"
           rel="noreferrer"
           onClick={() => onAction(marker, "threat_open_user_location", { userLocationHref })}
-          className="rounded-full bg-[#1e1e1e] px-3 py-1"
+          className="rounded-full border border-white/10 bg-[#1b1b1b] px-3 py-1"
         >
           User Location
         </a>
@@ -511,50 +473,66 @@ export default function FullScreenWorldMap() {
 
   const trackButtonAction: MapActionCallback = (marker, action, metadata = {}) => {
     setFirebaseActionStatus("saving");
-    const db = getFirebaseDb();
-    void addDoc(collection(db, "mapButtonActions"), {
-      markerId: marker.id,
-      markerKind: marker.kind,
-      markerName: marker.name,
-      markerRole: marker.role,
-      markerLat: marker.lat,
-      markerLng: marker.lng,
-      action,
-      metadata,
-      createdAt: serverTimestamp(),
-    })
-      .then(() => setFirebaseActionStatus("idle"))
-      .catch((error) => {
-        console.error("Failed to save map button action:", error);
+    void (async () => {
+      try {
+        const hasAuth = await ensureFirebaseAuthSession();
+        if (!hasAuth) {
+          setFirebaseActionStatus("error");
+          return;
+        }
+
+        const db = getFirebaseDb();
+        await addDoc(collection(db, "mapButtonActions"), {
+          markerId: marker.id,
+          markerKind: marker.kind,
+          markerName: marker.name,
+          markerRole: marker.role,
+          markerLat: marker.lat,
+          markerLng: marker.lng,
+          action,
+          metadata,
+          createdAt: serverTimestamp(),
+        });
+        setFirebaseActionStatus("idle");
+      } catch {
         setFirebaseActionStatus("error");
-      });
+      }
+    })();
   };
 
   const trackUiAction = (action: string, metadata: Record<string, unknown> = {}) => {
     setFirebaseActionStatus("saving");
-    const db = getFirebaseDb();
-    void addDoc(collection(db, "mapButtonActions"), {
-      markerId: null,
-      markerKind: "ui",
-      markerName: null,
-      markerRole: null,
-      markerLat: null,
-      markerLng: null,
-      action,
-      metadata,
-      createdAt: serverTimestamp(),
-    })
-      .then(() => setFirebaseActionStatus("idle"))
-      .catch((error) => {
-        console.error("Failed to save map UI action:", error);
+    void (async () => {
+      try {
+        const hasAuth = await ensureFirebaseAuthSession();
+        if (!hasAuth) {
+          setFirebaseActionStatus("error");
+          return;
+        }
+
+        const db = getFirebaseDb();
+        await addDoc(collection(db, "mapButtonActions"), {
+          markerId: null,
+          markerKind: "ui",
+          markerName: null,
+          markerRole: null,
+          markerLat: null,
+          markerLng: null,
+          action,
+          metadata,
+          createdAt: serverTimestamp(),
+        });
+        setFirebaseActionStatus("idle");
+      } catch {
         setFirebaseActionStatus("error");
-      });
+      }
+    })();
   };
 
   return (
-    <div className="relative h-screen w-screen overflow-hidden bg-[#060606]">
+    <div className="relative min-h-screen w-full overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(240,140,0,0.18),_transparent_48%),linear-gradient(180deg,_#171717_0%,_#0f0f0f_65%,_#090909_100%)]">
       <MapContainer
-        className="world-map h-full w-full"
+        className="world-map h-screen w-full"
         center={[22, 0]}
         zoom={2}
         minZoom={2}
@@ -569,9 +547,10 @@ export default function FullScreenWorldMap() {
         maxBoundsViscosity={0.5}
       >
         <TileLayer
-          url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          subdomains={["a", "b", "c", "d"]}
           errorTileUrl="data:image/gif;base64,R0lGODlhAQABAPAAAI2hoAAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=="
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
         />
         <PopupReset onReset={() => setActiveMarkerId(null)} />
         <ZoomControl position="bottomright" />
@@ -603,67 +582,84 @@ export default function FullScreenWorldMap() {
         ))}
       </MapContainer>
 
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-[900] flex justify-center px-4 pt-3">
-        <header className="pointer-events-auto flex w-full max-w-[1280px] flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-[#2b2b2b]/92 px-4 py-3 shadow-[0_16px_40px_-26px_rgba(0,0,0,0.92)]">
-          <button
-            type="button"
-            onClick={() => trackUiAction("select_user_click")}
-            className="inline-flex items-center gap-2 rounded-full bg-[#232323] px-4 py-2 text-xs font-semibold text-white"
-          >
-            <span className="grid h-4 w-4 place-items-center rounded-full bg-[#1a1a1a] text-[10px]">
-              +
-            </span>
-            Select User
-            <span className="text-[11px]">v</span>
-          </button>
-
-          <div className="flex min-w-[320px] flex-1 justify-center">
-            <div className="flex w-full max-w-[560px] items-center justify-center gap-4 rounded-full bg-gradient-to-r from-[#ea9804] to-[#fbb125] px-6 py-2.5 text-xs font-semibold text-white">
-              <DashboardGlyph />
-              <span className="tracking-[0.02em]">Dashboard Snapshot</span>
-              <UserGlyph />
-              <CarGlyph />
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-[900] px-3 pt-2 lg:px-4">
+        <header className="pointer-events-auto mx-auto flex w-full max-w-[1880px] flex-wrap items-center gap-3 rounded-2xl border border-white/10 bg-[#2b2b2b]/92 px-4 py-3 shadow-[0_16px_40px_-26px_rgba(0,0,0,0.92)] backdrop-blur-sm">
+          <div className="flex items-center gap-3">
+            <img
+              src="/flutter_assets/images/ride_gradient_190_fb9000_fbb125.png"
+              alt="Ride logo"
+              className="h-11 w-auto rounded-lg"
+            />
+            <div className="hidden items-center gap-2 rounded-full bg-[#1f1f1f] px-3 py-2 text-xs text-[var(--text-muted)] md:flex">
+              <span className="rounded-full bg-[#2e2e2e] px-3 py-1 text-[10px] uppercase tracking-[0.2em]">
+                Lifetime
+              </span>
+              <span>Dashboard Snapshot</span>
             </div>
           </div>
 
+          <div className="flex min-w-[240px] flex-1 items-center gap-2">
+            <div className="hidden min-w-[240px] flex-1 items-center gap-2 rounded-full bg-[#1f1f1f] px-4 py-2 text-sm text-[var(--text-soft)] xl:flex">
+              <span className="text-xs uppercase tracking-[0.2em] text-[var(--text-muted)]">
+                Search
+              </span>
+              <span className="truncate text-[10px] text-[var(--text-soft)]">
+                Dashboard Snapshot
+              </span>
+            </div>
+            <nav className="flex flex-wrap items-center gap-2">
+              {topNavLinks.map((item) => {
+                const active = item.href === "/map";
+                return (
+                  <Link
+                    key={`map-nav-${item.label}`}
+                    href={item.href}
+                    onClick={() =>
+                      trackUiAction("top_nav_click", { label: item.label, href: item.href })
+                    }
+                    className={[
+                      "rounded-full px-3 py-2 text-xs transition",
+                      active
+                        ? "bg-[#f4a20f] text-black"
+                        : "bg-[#1e1e1e] text-[var(--text-muted)] hover:bg-[#2b2b2b] hover:text-white",
+                    ].join(" ")}
+                  >
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </nav>
+          </div>
+
           <div className="flex items-center gap-2">
-            <span className="grid h-10 w-10 place-items-center rounded-full bg-[#f4a20f]">
-              <UserGlyph />
-            </span>
             <button
               type="button"
               onClick={() => trackUiAction("dark_theme_toggle_click")}
-              className="inline-flex items-center gap-2 rounded-full bg-[#f4a20f] px-4 py-2 text-xs font-semibold text-white"
+              className="rounded-full bg-gradient-to-r from-[#c97200] to-[#fbb125] px-3 py-2 text-xs font-semibold text-black"
             >
-              <span className="h-4 w-4 rounded-full border border-white bg-[#1a1a1a]" />
-              Dark Theme
-              <BellGlyph />
+              Dark
+            </button>
+            <button
+              type="button"
+              onClick={() => trackUiAction("user_chip_click")}
+              className="rounded-full bg-[#1f1f1f] px-3 py-2 text-xs text-[var(--text-muted)]"
+            >
+              User
+            </button>
+            <button
+              type="button"
+              onClick={() => trackUiAction("profile_chip_click", { name: "Enzo Godoy" })}
+              className="flex items-center gap-2 rounded-full bg-[#1f1f1f] px-3 py-2"
+            >
+              <img
+                src="/flutter_assets/images/perfil_transparente_cortado.png"
+                alt="Profile"
+                className="h-8 w-8 rounded-full border border-white/10"
+              />
+              <span className="text-xs text-[var(--text-muted)]">Enzo Godoy</span>
             </button>
           </div>
         </header>
-      </div>
-
-      <div className="pointer-events-none absolute left-4 top-[74px] z-[880]">
-        <nav className="pointer-events-auto flex items-center gap-2 rounded-full bg-[#1e1e1e]/95 px-3 py-1.5">
-          {topNavLinks.map((item) => {
-            const active = item.href === "/map";
-            return (
-              <Link
-                key={`map-nav-${item.label}`}
-                href={item.href}
-                onClick={() => trackUiAction("top_nav_click", { label: item.label, href: item.href })}
-                className={[
-                  "rounded-full px-3 py-1 text-[11px] font-medium transition",
-                  active
-                    ? "bg-[#f4a20f] text-black"
-                    : "bg-[#2b2b2b] text-white/80 hover:bg-[#383838] hover:text-white",
-                ].join(" ")}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
       </div>
 
       {firebaseActionStatus === "error" ? (

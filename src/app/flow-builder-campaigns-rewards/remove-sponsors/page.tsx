@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { FirebaseError } from "firebase/app";
 import { addDoc, collection, deleteDoc, doc, onSnapshot, serverTimestamp } from "firebase/firestore";
 
-import { getFirebaseDb } from "@/lib/firebase/client";
+import { ensureFirebaseAuthSession, getFirebaseDb } from "@/lib/firebase/client";
 
 type RemovableSponsor = {
   id: string;
@@ -73,61 +73,88 @@ export default function RemoveSponsorsPage() {
   const didSeedRef = useRef(false);
 
   useEffect(() => {
-    const db = getFirebaseDb();
-    const removableSponsorsRef = collection(db, "removableSponsors");
+    let active = true;
+    let unsubscribe: (() => void) | null = null;
 
-    const unsubscribe = onSnapshot(
-      removableSponsorsRef,
-      (snapshot) => {
-        const nextSponsors = snapshot.docs
-          .map((entry) => {
-            const data = entry.data() as Record<string, unknown>;
-            return {
-              id: entry.id,
-              name:
-                typeof data.name === "string" && data.name.trim()
-                  ? data.name.trim()
-                  : "Unnamed Sponsor",
-              category:
-                typeof data.category === "string" && data.category.trim()
-                  ? data.category.trim()
-                  : "Unknown",
-              tier:
-                typeof data.tier === "string" && data.tier.trim() ? data.tier.trim() : "Bronze",
-            } as RemovableSponsor;
-          })
-          .sort((first, second) => first.name.localeCompare(second.name));
+    void (async () => {
+      const hasAuth = await ensureFirebaseAuthSession();
+      if (!active) return;
 
-        setSponsors(nextSponsors);
-        setLoading(false);
-
-        if (!snapshot.empty || didSeedRef.current) return;
-
-        didSeedRef.current = true;
-        setStatusMessage("Criando 5 patrocinadores iniciais no Firebase...");
-        void seedInitialSponsors()
-          .then(() => {
-            setStatusMessage("Patrocinios iniciais criados.");
-          })
-          .catch((error: unknown) => {
-            setStatusMessage(
-              getFirebaseErrorMessage(error, "Erro ao criar patrocinadores iniciais.")
-            );
-          });
-      },
-      (error: unknown) => {
+      if (!hasAuth) {
         setLoading(false);
         setStatusMessage(
-          getFirebaseErrorMessage(error, "Erro ao sincronizar patrocinadores.")
+          "Nao foi possivel autenticar no Firebase. Ative Anonymous Auth ou faca login para acessar patrocinadores."
         );
+        return;
       }
-    );
 
-    return () => unsubscribe();
+      const db = getFirebaseDb();
+      const removableSponsorsRef = collection(db, "removableSponsors");
+
+      unsubscribe = onSnapshot(
+        removableSponsorsRef,
+        (snapshot) => {
+          const nextSponsors = snapshot.docs
+            .map((entry) => {
+              const data = entry.data() as Record<string, unknown>;
+              return {
+                id: entry.id,
+                name:
+                  typeof data.name === "string" && data.name.trim()
+                    ? data.name.trim()
+                    : "Unnamed Sponsor",
+                category:
+                  typeof data.category === "string" && data.category.trim()
+                    ? data.category.trim()
+                    : "Unknown",
+                tier:
+                  typeof data.tier === "string" && data.tier.trim() ? data.tier.trim() : "Bronze",
+              } as RemovableSponsor;
+            })
+            .sort((first, second) => first.name.localeCompare(second.name));
+
+          setSponsors(nextSponsors);
+          setLoading(false);
+
+          if (!snapshot.empty || didSeedRef.current) return;
+
+          didSeedRef.current = true;
+          setStatusMessage("Criando 5 patrocinadores iniciais no Firebase...");
+          void seedInitialSponsors()
+            .then(() => {
+              setStatusMessage("Patrocinios iniciais criados.");
+            })
+            .catch((error: unknown) => {
+              setStatusMessage(
+                getFirebaseErrorMessage(error, "Erro ao criar patrocinadores iniciais.")
+              );
+            });
+        },
+        (error: unknown) => {
+          setLoading(false);
+          setStatusMessage(
+            getFirebaseErrorMessage(error, "Erro ao sincronizar patrocinadores.")
+          );
+        }
+      );
+    })();
+
+    return () => {
+      active = false;
+      unsubscribe?.();
+    };
   }, []);
 
   const handleRemoveSponsor = async (sponsorId: string) => {
     if (removingId) return;
+
+    const hasAuth = await ensureFirebaseAuthSession();
+    if (!hasAuth) {
+      setStatusMessage(
+        "Nao foi possivel autenticar no Firebase. Ative Anonymous Auth ou faca login para remover patrocinadores."
+      );
+      return;
+    }
 
     setRemovingId(sponsorId);
     setStatusMessage("Removendo patrocinio no Firebase...");

@@ -2,11 +2,10 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { User, onAuthStateChanged } from "firebase/auth";
 import { collection, doc, getDoc, getDocs, limit, query, where } from "firebase/firestore";
 
 import ChatPanel from "@/components/ChatPanel";
-import { getFirebaseAuth, getFirebaseDb } from "@/lib/firebase/client";
+import { ensureFirebaseAuthSession, getFirebaseAuth, getFirebaseDb } from "@/lib/firebase/client";
 
 type ProfileChatClientProps = {
   initialName?: string;
@@ -141,7 +140,6 @@ export default function ProfileChatClient({
 
   useEffect(() => {
     let active = true;
-    let unsubAuth: (() => void) | undefined;
 
     const applyProfile = (profile: FirebaseProfile | null) => {
       if (!active || !profile) return;
@@ -150,28 +148,24 @@ export default function ProfileChatClient({
       if (shouldResolvePhone && profile.phone) setPhoneValue(profile.phone);
     };
 
-    const resolveFromFirebase = async (authUser?: User | null) => {
+    const resolveFromFirebase = async () => {
+      const auth = getFirebaseAuth();
       const profile = await fetchProfileFromFirebase({
         userId,
-        uid: cleanText(uid) ?? authUser?.uid,
-        email: authUser?.email ?? undefined,
+        uid: cleanText(uid) ?? auth?.currentUser?.uid,
+        email: auth?.currentUser?.email ?? undefined,
       });
       applyProfile(profile);
     };
 
-    const auth = getFirebaseAuth();
-    void resolveFromFirebase(auth?.currentUser);
-
-    if (auth && !auth.currentUser) {
-      unsubAuth = onAuthStateChanged(auth, (authUser) => {
-        unsubAuth?.();
-        void resolveFromFirebase(authUser);
-      });
-    }
+    void (async () => {
+      const hasAuth = await ensureFirebaseAuthSession();
+      if (!active || !hasAuth) return;
+      await resolveFromFirebase();
+    })();
 
     return () => {
       active = false;
-      unsubAuth?.();
     };
   }, [phone, shouldResolveName, shouldResolvePhone, shouldResolveRole, uid, userId]);
 

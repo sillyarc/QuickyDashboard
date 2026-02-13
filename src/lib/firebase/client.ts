@@ -1,5 +1,5 @@
 import { FirebaseApp, getApp, getApps, initializeApp } from "firebase/app";
-import { Auth, getAuth } from "firebase/auth";
+import { Auth, getAuth, signInAnonymously } from "firebase/auth";
 import { Firestore, getFirestore } from "firebase/firestore";
 import { Functions, getFunctions } from "firebase/functions";
 
@@ -24,6 +24,7 @@ const firebaseConfig = {
 };
 
 let firebaseApp: FirebaseApp | null = null;
+let ensureAuthPromise: Promise<boolean> | null = null;
 
 export const getFirebaseApp = (): FirebaseApp => {
   if (firebaseApp) return firebaseApp;
@@ -36,6 +37,25 @@ export const getFirebaseDb = (): Firestore => getFirestore(getFirebaseApp());
 export const getFirebaseAuth = (): Auth | null => {
   if (typeof window === "undefined") return null;
   return getAuth(getFirebaseApp());
+};
+
+export const ensureFirebaseAuthSession = async (): Promise<boolean> => {
+  const auth = getFirebaseAuth();
+  if (!auth) return false;
+
+  await auth.authStateReady();
+  if (auth.currentUser) return true;
+
+  if (!ensureAuthPromise) {
+    ensureAuthPromise = signInAnonymously(auth)
+      .then(() => Boolean(auth.currentUser))
+      .catch(() => false)
+      .finally(() => {
+        ensureAuthPromise = null;
+      });
+  }
+
+  return ensureAuthPromise;
 };
 
 export const getFirebaseFunctions = (): Functions => getFunctions(getFirebaseApp());

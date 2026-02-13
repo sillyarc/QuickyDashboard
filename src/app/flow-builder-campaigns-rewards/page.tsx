@@ -12,7 +12,7 @@ import {
   updateDoc,
 } from "firebase/firestore";
 
-import { getFirebaseDb } from "@/lib/firebase/client";
+import { ensureFirebaseAuthSession, getFirebaseDb } from "@/lib/firebase/client";
 
 type SponsorPerk = {
   id: string;
@@ -185,46 +185,65 @@ export default function FlowBuilderCampaignsRewardsPage() {
   const hasSeededCampaignsRef = useRef(false);
 
   useEffect(() => {
-    const db = getFirebaseDb();
-    const campaignsRef = collection(db, "campaignRewards");
+    let active = true;
+    let unsubscribe: (() => void) | null = null;
 
-    const unsubscribe = onSnapshot(
-      campaignsRef,
-      (snapshot) => {
-        if (snapshot.empty && !hasSeededCampaignsRef.current) {
-          hasSeededCampaignsRef.current = true;
-          void addDoc(campaignsRef, {
-            ...toFirestorePayload(createDefaultCampaign(1)),
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp(),
-          }).catch((error: unknown) => {
-            setFeedbackMessage(
-              getFirebaseErrorMessage(
-                error,
-                "Nao foi possivel criar campanha inicial no Firebase."
-              )
-            );
-          });
-          setLoadingCampaigns(false);
-          return;
-        }
+    void (async () => {
+      const hasAuth = await ensureFirebaseAuthSession();
+      if (!active) return;
 
-        const nextCampaigns = snapshot.docs
-          .map((entry) => parseCampaign(entry.id, entry.data() as Record<string, unknown>))
-          .sort((first, second) => first.name.localeCompare(second.name));
-
-        setCampaigns(nextCampaigns);
-        setLoadingCampaigns(false);
-      },
-      (error: unknown) => {
+      if (!hasAuth) {
         setLoadingCampaigns(false);
         setFeedbackMessage(
-          getFirebaseErrorMessage(error, "Nao foi possivel sincronizar campanhas no Firebase.")
+          "Nao foi possivel autenticar no Firebase. Ative Anonymous Auth ou faca login para acessar campanhas."
         );
+        return;
       }
-    );
 
-    return () => unsubscribe();
+      const db = getFirebaseDb();
+      const campaignsRef = collection(db, "campaignRewards");
+
+      unsubscribe = onSnapshot(
+        campaignsRef,
+        (snapshot) => {
+          if (snapshot.empty && !hasSeededCampaignsRef.current) {
+            hasSeededCampaignsRef.current = true;
+            void addDoc(campaignsRef, {
+              ...toFirestorePayload(createDefaultCampaign(1)),
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp(),
+            }).catch((error: unknown) => {
+              setFeedbackMessage(
+                getFirebaseErrorMessage(
+                  error,
+                  "Nao foi possivel criar campanha inicial no Firebase."
+                )
+              );
+            });
+            setLoadingCampaigns(false);
+            return;
+          }
+
+          const nextCampaigns = snapshot.docs
+            .map((entry) => parseCampaign(entry.id, entry.data() as Record<string, unknown>))
+            .sort((first, second) => first.name.localeCompare(second.name));
+
+          setCampaigns(nextCampaigns);
+          setLoadingCampaigns(false);
+        },
+        (error: unknown) => {
+          setLoadingCampaigns(false);
+          setFeedbackMessage(
+            getFirebaseErrorMessage(error, "Nao foi possivel sincronizar campanhas no Firebase.")
+          );
+        }
+      );
+    })();
+
+    return () => {
+      active = false;
+      unsubscribe?.();
+    };
   }, []);
 
   useEffect(() => {
@@ -260,6 +279,14 @@ export default function FlowBuilderCampaignsRewardsPage() {
 
   const handleCreateCampaign = async () => {
     if (isCreatingCampaign) return;
+
+    const hasAuth = await ensureFirebaseAuthSession();
+    if (!hasAuth) {
+      setFeedbackMessage(
+        "Nao foi possivel autenticar no Firebase. Ative Anonymous Auth ou faca login para criar campanhas."
+      );
+      return;
+    }
 
     const db = getFirebaseDb();
     const order = campaigns.length + 1;
@@ -335,6 +362,14 @@ export default function FlowBuilderCampaignsRewardsPage() {
 
   const handleSaveAllChanges = async () => {
     if (!activeCampaign || isSavingSponsors) return;
+
+    const hasAuth = await ensureFirebaseAuthSession();
+    if (!hasAuth) {
+      setFeedbackMessage(
+        "Nao foi possivel autenticar no Firebase. Ative Anonymous Auth ou faca login para salvar sponsors."
+      );
+      return;
+    }
 
     setIsSavingSponsors(true);
     setFeedbackMessage("Salvando sponsors e perks no Firebase...");

@@ -20,7 +20,11 @@ import {
 } from "firebase/firestore";
 import { httpsCallable } from "firebase/functions";
 
-import { getFirebaseDb, getFirebaseFunctions } from "@/lib/firebase/client";
+import {
+  ensureFirebaseAuthSession,
+  getFirebaseDb,
+  getFirebaseFunctions,
+} from "@/lib/firebase/client";
 
 type SosEmergencyCardProps = {
   askDriversHref: string;
@@ -343,47 +347,59 @@ export default function SosEmergencyCard({
   const [riderPhoneInput, setRiderPhoneInput] = useState("");
 
   useEffect(() => {
-    const db = getFirebaseDb();
     let active = true;
     let requestId = 0;
+    let unsubscribe = () => {};
 
-    const chatsQuery = query(
-      collection(db, "chat"),
-      orderBy("ultimaMsg", "desc"),
-      limit(20)
-    );
+    void (async () => {
+      const hasAuth = await ensureFirebaseAuthSession();
+      if (!active) return;
 
-    const unsubscribe = onSnapshot(
-      chatsQuery,
-      (snapshot) => {
-        requestId += 1;
-        const currentRequest = requestId;
-
-        void (async () => {
-          try {
-            const nextIncident = await loadIncidentFromChats(snapshot.docs);
-            if (!active || currentRequest !== requestId) return;
-            if (nextIncident) {
-              setIncident(nextIncident);
-            } else {
-              setIncident(DEFAULT_INCIDENT);
-            }
-          } catch {
-            if (!active || currentRequest !== requestId) return;
-            setIncident(DEFAULT_INCIDENT);
-          } finally {
-            if (active && currentRequest === requestId) {
-              setLoading(false);
-            }
-          }
-        })();
-      },
-      () => {
-        if (!active) return;
+      if (!hasAuth) {
         setIncident(DEFAULT_INCIDENT);
         setLoading(false);
+        return;
       }
-    );
+
+      const db = getFirebaseDb();
+      const chatsQuery = query(
+        collection(db, "chat"),
+        orderBy("ultimaMsg", "desc"),
+        limit(20)
+      );
+
+      unsubscribe = onSnapshot(
+        chatsQuery,
+        (snapshot) => {
+          requestId += 1;
+          const currentRequest = requestId;
+
+          void (async () => {
+            try {
+              const nextIncident = await loadIncidentFromChats(snapshot.docs);
+              if (!active || currentRequest !== requestId) return;
+              if (nextIncident) {
+                setIncident(nextIncident);
+              } else {
+                setIncident(DEFAULT_INCIDENT);
+              }
+            } catch {
+              if (!active || currentRequest !== requestId) return;
+              setIncident(DEFAULT_INCIDENT);
+            } finally {
+              if (active && currentRequest === requestId) {
+                setLoading(false);
+              }
+            }
+          })();
+        },
+        () => {
+          if (!active) return;
+          setIncident(DEFAULT_INCIDENT);
+          setLoading(false);
+        }
+      );
+    })();
 
     return () => {
       active = false;
@@ -436,6 +452,11 @@ export default function SosEmergencyCard({
     setSaveStatus("Saving phone numbers in Firebase...");
 
     try {
+      const hasAuth = await ensureFirebaseAuthSession();
+      if (!hasAuth) {
+        throw new Error("Authentication required.");
+      }
+
       const callable = httpsCallable<
         UpsertEmergencyPhonesPayload,
         { updated: string[] }

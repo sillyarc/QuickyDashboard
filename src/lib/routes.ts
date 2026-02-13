@@ -25,8 +25,8 @@ export const quickyDashboardRoutes: NavRoute[] = [
     description: "Variação do dashboard de tarefas.",
   },
   {
-    key: "alluserapage",
-    path: "/alluserapage",
+    key: "users",
+    path: "/users",
     label: "Usuários",
     description: "Gestão e visualização de usuários.",
   },

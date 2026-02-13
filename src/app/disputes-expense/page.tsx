@@ -167,7 +167,7 @@ const internalActionRoutes = {
   refundRider: "/edittask",
   escalateDispute: "/edittask",
   addEmployee: "/createPreTasks",
-  payrollEmployees: "/alluserapage",
+  payrollEmployees: "/users",
   newExpense: "/dashboardQuickyTasks",
   addExpense: "/dashboardQuickyTasks",
   setRecurring: "/dashboardQuickyTasksCopyCopy",
